@@ -5,6 +5,13 @@ declare global {
      * @param redirectUrl - URL to redirect to after successful authentication
      */
     navigateToAuth: (redirectUrl: string) => void;
+    ethereum?: {
+      isMetaMask?: boolean;
+      isTrust?: boolean;
+      request: (args: { method: string; params?: any[] }) => Promise<any>;
+      on: (event: string, callback: (...args: any[]) => void) => void;
+      removeListener: (event: string, callback: (...args: any[]) => void) => void;
+    };
   }
 }
 

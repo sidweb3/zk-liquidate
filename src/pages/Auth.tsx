@@ -8,9 +8,10 @@ import {
 } from "@/components/ui/card";
 
 import { useAuth } from "@/hooks/use-auth";
-import { Loader2, UserX, Wallet } from "lucide-react";
+import { Loader2, Wallet } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { BrowserProvider } from "ethers";
 
 interface AuthProps {
   redirectAfterAuth?: string;
@@ -21,10 +22,11 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      const redirect = redirectAfterAuth || "/";
+      const redirect = redirectAfterAuth || "/dashboard";
       navigate(redirect);
     }
   }, [authLoading, isAuthenticated, navigate, redirectAfterAuth]);
@@ -32,31 +34,44 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const handleWalletConnect = async () => {
     setIsLoading(true);
     setError(null);
+    
     try {
-      // TODO: Implement wallet connection logic here
-      // This will require adding a wallet auth provider to Convex auth
-      setError("Wallet authentication coming soon. Please use guest access for now.");
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Wallet connection error:", error);
-      setError(`Failed to connect wallet: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      setIsLoading(false);
-    }
-  };
+      // Check if MetaMask or any Web3 wallet is installed
+      if (typeof window.ethereum === "undefined") {
+        setError("No Web3 wallet detected. Please install MetaMask or Trust Wallet.");
+        setIsLoading(false);
+        return;
+      }
 
-  const handleGuestLogin = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      console.log("Attempting anonymous sign in...");
+      // Request account access
+      const provider = new BrowserProvider(window.ethereum);
+      const accounts = await provider.send("eth_requestAccounts", []);
+      
+      if (accounts.length === 0) {
+        setError("No accounts found. Please unlock your wallet.");
+        setIsLoading(false);
+        return;
+      }
+
+      const address = accounts[0];
+      setWalletAddress(address);
+
+      // Sign in anonymously for now (wallet auth provider would need to be added to Convex)
+      // This allows the user to access the app with their wallet connected
       await signIn("anonymous");
-      console.log("Anonymous sign in successful");
-      const redirect = redirectAfterAuth || "/";
+      
+      const redirect = redirectAfterAuth || "/dashboard";
       navigate(redirect);
-    } catch (error) {
-      console.error("Guest login error:", error);
-      console.error("Error details:", JSON.stringify(error, null, 2));
-      setError(`Failed to sign in as guest: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } catch (error: any) {
+      console.error("Wallet connection error:", error);
+      
+      if (error.code === 4001) {
+        setError("Connection request rejected. Please approve the connection in your wallet.");
+      } else if (error.code === -32002) {
+        setError("Connection request already pending. Please check your wallet.");
+      } else {
+        setError(`Failed to connect wallet: ${error.message || 'Unknown error'}`);
+      }
       setIsLoading(false);
     }
   };
@@ -80,7 +95,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
               </div>
               <CardTitle className="text-xl">Connect to zkLiquidate</CardTitle>
               <CardDescription>
-                Connect your wallet to access the protocol
+                Connect your Web3 wallet to access the protocol
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -98,31 +113,19 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                 Connect Wallet
               </Button>
 
+              {walletAddress && (
+                <p className="text-sm text-green-500 text-center">
+                  Connected: {walletAddress.substring(0, 6)}...{walletAddress.substring(38)}
+                </p>
+              )}
+
               {error && (
                 <p className="text-sm text-red-500 text-center">{error}</p>
               )}
 
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
-                    Or
-                  </span>
-                </div>
-              </div>
-
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={handleGuestLogin}
-                disabled={isLoading}
-              >
-                <UserX className="mr-2 h-4 w-4" />
-                Continue as Guest
-              </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                Supports MetaMask, Trust Wallet, and other Web3 wallets
+              </p>
             </CardContent>
 
             <div className="py-4 px-6 text-xs text-center text-muted-foreground bg-muted border-t rounded-b-lg">
