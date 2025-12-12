@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { AlertTriangle, CheckCircle2, Clock, Zap, Link2, Database } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { getIntentRegistryContract, getZKVerifierContract, getLiquidationExecutorContract, switchToNetwork, CONTRACTS } from "@/lib/contracts";
+import { getIntentRegistryContract, getZKVerifierContract, getLiquidationExecutorContract, switchToNetwork, CONTRACTS, fetchUserCollateralAssets } from "@/lib/contracts";
 import { parseEther } from "ethers";
 import { motion } from "framer-motion";
 
@@ -139,21 +139,34 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
         
         const executorContract = await getLiquidationExecutorContract();
         
-        // Mock asset addresses and amounts for execution
-        const mockAssets = ["0x0000000000000000000000000000000000000001"];
-        const mockAmounts = [parseEther("1000")];
+        // Fetch the intent details to get target user address
+        const registryContract = await getIntentRegistryContract();
+        const intentData = await registryContract.getIntent(intentHash);
+        const targetUserAddress = intentData.targetUser;
         
-        toast.info("Executing liquidation...");
+        toast.info("Fetching collateral assets from target user...");
+        
+        // Fetch real collateral assets from the target user
+        const { assets, amounts } = await fetchUserCollateralAssets(targetUserAddress);
+        
+        console.log("Liquidating assets:", {
+          intentHash,
+          targetUser: targetUserAddress,
+          assets,
+          amounts: amounts.map(a => a.toString()),
+        });
+        
+        toast.info(`Executing liquidation for ${assets.length} asset(s)...`);
         const tx = await executorContract.executeLiquidation(
           intentHash,
-          mockAssets,
-          mockAmounts
+          assets,
+          amounts
         );
         
         toast.info("Waiting for execution confirmation...");
         const receipt = await tx.wait();
         
-        toast.success("Liquidation executed successfully!");
+        toast.success(`Liquidation executed successfully! ${assets.length} asset(s) liquidated.`);
         
         // Switch back to Amoy network
         await switchToNetwork(CONTRACTS.INTENT_REGISTRY.chainId);

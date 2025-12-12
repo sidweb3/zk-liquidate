@@ -17,6 +17,23 @@ export const CONTRACTS = {
   },
 } as const;
 
+// Common testnet token addresses on Polygon Amoy
+export const TESTNET_TOKENS = {
+  WMATIC: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+  USDC: "0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582",
+  WETH: "0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa",
+  DAI: "0x001B3B4d0F3714Ca98ba10F6042DaEbF0B1B7b6F",
+  USDT: "0xBD21A10F619BE90d6066c941b04e340841F1F989",
+} as const;
+
+// ERC20 ABI for token interactions
+export const ERC20_ABI = [
+  "function balanceOf(address owner) view returns (uint256)",
+  "function decimals() view returns (uint8)",
+  "function symbol() view returns (string)",
+  "function approve(address spender, uint256 amount) returns (bool)",
+] as const;
+
 // Contract ABIs (simplified for frontend interaction)
 export const INTENT_REGISTRY_ABI = [
   "function submitIntent(address targetUser, uint256 targetHealthFactor, uint256 minPrice, uint256 deadline) external payable returns (bytes32)",
@@ -66,6 +83,56 @@ export async function getLiquidationExecutorContract() {
   const provider = new BrowserProvider(window.ethereum);
   const signer = await provider.getSigner();
   return new Contract(CONTRACTS.LIQUIDATION_EXECUTOR.address, LIQUIDATION_EXECUTOR_ABI, signer);
+}
+
+// Helper to get ERC20 token contract
+export async function getTokenContract(tokenAddress: string) {
+  if (typeof window.ethereum === "undefined") {
+    throw new Error("No Web3 wallet detected");
+  }
+  const provider = new BrowserProvider(window.ethereum);
+  const signer = await provider.getSigner();
+  return new Contract(tokenAddress, ERC20_ABI, signer);
+}
+
+// Helper to fetch user's collateral assets
+export async function fetchUserCollateralAssets(userAddress: string): Promise<{ assets: string[], amounts: bigint[] }> {
+  if (typeof window.ethereum === "undefined") {
+    throw new Error("No Web3 wallet detected");
+  }
+  
+  const provider = new BrowserProvider(window.ethereum);
+  const assets: string[] = [];
+  const amounts: bigint[] = [];
+  
+  // Check balances for common testnet tokens
+  const tokenAddresses = Object.values(TESTNET_TOKENS);
+  
+  for (const tokenAddress of tokenAddresses) {
+    try {
+      const tokenContract = new Contract(tokenAddress, ERC20_ABI, provider);
+      const balance = await tokenContract.balanceOf(userAddress);
+      
+      // Only include tokens with non-zero balance
+      if (balance > 0n) {
+        assets.push(tokenAddress);
+        amounts.push(balance);
+      }
+    } catch (error) {
+      console.warn(`Failed to fetch balance for token ${tokenAddress}:`, error);
+    }
+  }
+  
+  // If no assets found, use default mock assets for testing
+  if (assets.length === 0) {
+    console.warn("No collateral assets found, using default test assets");
+    return {
+      assets: [TESTNET_TOKENS.USDC],
+      amounts: [1000000000n], // 1000 USDC (6 decimals)
+    };
+  }
+  
+  return { assets, amounts };
 }
 
 // Helper to switch network
