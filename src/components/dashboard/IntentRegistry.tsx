@@ -35,10 +35,21 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
         
         const contract = await getIntentRegistryContract();
         const targetUser = formData.get("address") as string;
+        // Health factor as percentage (e.g., 95 for 0.95 health factor)
         const targetHealthFactor = Math.floor(parseFloat(formData.get("hf") as string) * 100);
         const minPrice = parseEther(formData.get("price") as string);
-        const deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
-        const bondAmount = parseEther(formData.get("bond") as string);
+        // Deadline: 1 hour from now in seconds
+        const deadline = Math.floor(Date.now() / 1000) + 3600;
+        const bondAmount = parseEther("10"); // Always 10 POL
+        
+        // Log parameters for debugging
+        console.log("Submitting intent with params:", {
+          targetUser,
+          targetHealthFactor,
+          minPrice: minPrice.toString(),
+          deadline,
+          bondAmount: bondAmount.toString()
+        });
         
         const tx = await contract.submitIntent(
           targetUser,
