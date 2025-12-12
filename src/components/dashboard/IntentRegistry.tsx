@@ -4,11 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertTriangle, CheckCircle2, Clock, Zap } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock, Zap, Link2, Database } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { getIntentRegistryContract, switchToNetwork, CONTRACTS } from "@/lib/contracts";
 import { parseEther } from "ethers";
+import { motion } from "framer-motion";
 
 interface IntentRegistryProps {
   intents: any[] | undefined;
@@ -30,19 +31,15 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
       const formData = new FormData(form);
       
       if (useBlockchain) {
-        // Blockchain submission
         await switchToNetwork(CONTRACTS.INTENT_REGISTRY.chainId);
         
         const contract = await getIntentRegistryContract();
         const targetUser = formData.get("address") as string;
-        // Health factor as percentage (e.g., 95 for 0.95 health factor)
         const targetHealthFactor = Math.floor(parseFloat(formData.get("hf") as string) * 100);
         const minPrice = parseEther(formData.get("price") as string);
-        // Deadline: 1 hour from now in seconds
         const deadline = Math.floor(Date.now() / 1000) + 3600;
-        const bondAmount = parseEther("10"); // Always 10 POL
+        const bondAmount = parseEther("10");
         
-        // Log parameters for debugging
         console.log("Submitting intent with params:", {
           targetUser,
           targetHealthFactor,
@@ -63,7 +60,6 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
         await tx.wait();
         toast.success("Liquidation intent submitted on-chain!");
       } else {
-        // Fallback to Convex simulation
         await onSubmitIntent({
           targetUserAddress: formData.get("address") as string,
           targetHealthFactor: parseFloat(formData.get("hf") as string),
@@ -100,54 +96,118 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'verified': return 'bg-green-500/20 text-green-500 border-green-500/30';
+      case 'executed': return 'bg-blue-500/20 text-blue-500 border-blue-500/30';
+      case 'failed': return 'bg-red-500/20 text-red-500 border-red-500/30';
+      default: return 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'verified': return <CheckCircle2 className="h-5 w-5" />;
+      case 'executed': return <Zap className="h-5 w-5" />;
+      case 'failed': return <AlertTriangle className="h-5 w-5" />;
+      default: return <Clock className="h-5 w-5" />;
+    }
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold tracking-tight">Liquidation Intent Registry</h2>
-        <div className="flex gap-2">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Liquidation Intent Registry</h2>
+          <p className="text-muted-foreground mt-1">Manage and track liquidation intents across chains</p>
+        </div>
+        <div className="flex gap-3">
           <Button
             variant={useBlockchain ? "default" : "outline"}
             size="sm"
             onClick={() => setUseBlockchain(!useBlockchain)}
+            className="transition-all"
           >
-            {useBlockchain ? "🔗 Blockchain" : "💾 Simulated"}
+            {useBlockchain ? (
+              <>
+                <Link2 className="mr-2 h-4 w-4" />
+                Blockchain
+              </>
+            ) : (
+              <>
+                <Database className="mr-2 h-4 w-4" />
+                Simulated
+              </>
+            )}
           </Button>
           <Dialog>
             <DialogTrigger asChild>
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button className="bg-gradient-to-r from-primary to-accent text-black hover:opacity-90 transition-all shadow-lg shadow-primary/20">
                 <Zap className="mr-2 h-4 w-4" /> New Liquidation Intent
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] bg-card border-border">
+            <DialogContent className="sm:max-w-[500px] bg-card border-border">
               <DialogHeader>
-                <DialogTitle>Submit Liquidation Intent</DialogTitle>
+                <DialogTitle className="text-2xl">Submit Liquidation Intent</DialogTitle>
                 <DialogDescription>
                   {useBlockchain 
                     ? "Create a new liquidation intent on-chain. Requires 10 POL bond."
                     : "Create a simulated liquidation intent for testing."}
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmitIntent} className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="address">Target User Address</Label>
-                  <Input id="address" name="address" placeholder="0x..." required className="bg-background border-input" />
+              <form onSubmit={handleSubmitIntent} className="grid gap-6 py-4">
+                <div className="grid gap-3">
+                  <Label htmlFor="address" className="text-sm font-medium">Target User Address</Label>
+                  <Input 
+                    id="address" 
+                    name="address" 
+                    placeholder="0x..." 
+                    required 
+                    className="bg-background border-input h-11" 
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="hf">Target HF</Label>
-                    <Input id="hf" name="hf" type="number" step="0.01" placeholder="0.95" required className="bg-background border-input" />
+                  <div className="grid gap-3">
+                    <Label htmlFor="hf" className="text-sm font-medium">Target Health Factor</Label>
+                    <Input 
+                      id="hf" 
+                      name="hf" 
+                      type="number" 
+                      step="0.01" 
+                      placeholder="0.95" 
+                      required 
+                      className="bg-background border-input h-11" 
+                    />
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="price">Min Price</Label>
-                    <Input id="price" name="price" type="number" placeholder="2500" required className="bg-background border-input" />
+                  <div className="grid gap-3">
+                    <Label htmlFor="price" className="text-sm font-medium">Min Price (POL)</Label>
+                    <Input 
+                      id="price" 
+                      name="price" 
+                      type="number" 
+                      placeholder="2500" 
+                      required 
+                      className="bg-background border-input h-11" 
+                    />
                   </div>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="bond">Bond Amount (POL)</Label>
-                  <Input id="bond" name="bond" type="number" defaultValue="10" readOnly className="bg-muted border-input" />
+                <div className="grid gap-3">
+                  <Label htmlFor="bond" className="text-sm font-medium">Bond Amount (POL)</Label>
+                  <Input 
+                    id="bond" 
+                    name="bond" 
+                    type="number" 
+                    defaultValue="10" 
+                    readOnly 
+                    className="bg-muted border-input h-11" 
+                  />
                 </div>
                 <DialogFooter>
-                  <Button type="submit" disabled={isSubmitting} className="bg-primary text-primary-foreground">
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmitting} 
+                    className="bg-gradient-to-r from-primary to-accent text-black hover:opacity-90 w-full h-11"
+                  >
                     {isSubmitting ? "Submitting..." : "Submit Intent"}
                   </Button>
                 </DialogFooter>
@@ -157,7 +217,7 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
         </div>
       </div>
 
-      <Card className="bg-card border-border">
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
         <CardHeader>
           <CardTitle>Recent Intents</CardTitle>
           <CardDescription>
@@ -167,57 +227,65 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {intents?.map((intent) => (
-              <div key={intent._id} className="flex items-center justify-between p-4 rounded-lg border border-border bg-background/50 hover:bg-background transition-colors">
+          <div className="space-y-3">
+            {intents?.map((intent, index) => (
+              <motion.div
+                key={intent._id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+                className="flex items-center justify-between p-5 rounded-xl border border-border/50 bg-background/50 hover:bg-background hover:border-primary/30 transition-all group"
+              >
                 <div className="flex items-center gap-4">
-                  <div className={`p-2 rounded-full ${
-                    intent.status === 'verified' ? 'bg-green-500/20 text-green-500' :
-                    intent.status === 'executed' ? 'bg-blue-500/20 text-blue-500' :
-                    intent.status === 'failed' ? 'bg-red-500/20 text-red-500' :
-                    'bg-yellow-500/20 text-yellow-500'
-                  }`}>
-                    {intent.status === 'verified' ? <CheckCircle2 className="h-5 w-5" /> :
-                     intent.status === 'executed' ? <Zap className="h-5 w-5" /> :
-                     intent.status === 'failed' ? <AlertTriangle className="h-5 w-5" /> :
-                     <Clock className="h-5 w-5" />}
+                  <div className={`p-3 rounded-xl ${getStatusColor(intent.status)} group-hover:scale-110 transition-transform`}>
+                    {getStatusIcon(intent.status)}
                   </div>
                   <div>
-                    <div className="font-medium flex items-center gap-2">
-                      {intent.targetUserAddress.substring(0, 6)}...{intent.targetUserAddress.substring(38)}
-                      <Badge variant="outline" className="text-xs font-normal">HF: {intent.targetHealthFactor}</Badge>
+                    <div className="font-medium flex items-center gap-2 mb-1">
+                      <span className="font-mono">{intent.targetUserAddress.substring(0, 6)}...{intent.targetUserAddress.substring(38)}</span>
+                      <Badge variant="outline" className="text-xs font-normal bg-muted">
+                        HF: {intent.targetHealthFactor}
+                      </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground">
                       Min Price: ${intent.minPrice} • Bond: {intent.bondAmount} POL
                     </div>
-                    <div className="flex items-center gap-1 mt-1">
+                    <div className="flex items-center gap-2 mt-2">
                       <Badge variant="secondary" className="text-[10px] h-5 bg-purple-500/10 text-purple-400 border-purple-500/20">
                         AI Score: {(Math.random() * 100).toFixed(0)}/100
+                      </Badge>
+                      <Badge className={`text-[10px] h-5 capitalize ${getStatusColor(intent.status)}`}>
+                        {intent.status}
                       </Badge>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   {intent.status === 'pending' && (
-                    <Button size="sm" variant="outline" onClick={() => handleVerify(intent._id)}>
+                    <Button size="sm" variant="outline" onClick={() => handleVerify(intent._id)} className="hover:border-primary/50">
                       Verify Proof
                     </Button>
                   )}
                   {intent.status === 'verified' && (
-                    <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => handleExecute(intent._id)}>
+                    <Button 
+                      size="sm" 
+                      className="bg-gradient-to-r from-primary to-accent text-black hover:opacity-90" 
+                      onClick={() => handleExecute(intent._id)}
+                    >
                       Execute
                     </Button>
                   )}
                   <div className="text-right text-sm text-muted-foreground min-w-[100px]">
-                    <div className="font-mono text-xs opacity-50">{new Date(intent._creationTime).toLocaleTimeString()}</div>
-                    <div className="capitalize">{intent.status}</div>
+                    <div className="font-mono text-xs opacity-70">{new Date(intent._creationTime).toLocaleTimeString()}</div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
             {(!intents || intents.length === 0) && (
-              <div className="text-center py-12 text-muted-foreground">
-                No active intents found. Submit one to get started.
+              <div className="text-center py-16 text-muted-foreground">
+                <Database className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                <p className="text-lg font-medium mb-1">No active intents found</p>
+                <p className="text-sm">Submit a new intent to get started</p>
               </div>
             )}
           </div>
