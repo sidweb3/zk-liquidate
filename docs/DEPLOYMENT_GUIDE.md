@@ -11,8 +11,11 @@ This guide walks you through deploying the zkLiquidate protocol to Polygon testn
 
 ### Smart Contracts (Minimized to 3)
 1. **IntentRegistry.sol** (Polygon Amoy Testnet) - Intent submission, staking, and registry
+   - **Deployed at**: `0x831F6F30cc0Aa68a9541B79c2289BF748DEC4a2a`
 2. **ZKVerifier.sol** (Polygon zkEVM Testnet) - ZK proof verification and validation
+   - **Deployed at**: `0x8C935B982416673cF9633DdCC4E9Dc4ec2846Ab2`
 3. **LiquidationExecutor.sol** (Polygon Amoy Testnet) - Execution, insurance pool, and rewards
+   - **Deployed at**: `0x6cFe23FA3ed2D3df4ae2a4A2686514Fa8E634A9B`
 
 **Note:** We've combined AggLayerExecutor + InsurancePool into LiquidationExecutor to minimize deployments.
 
