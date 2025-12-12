@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { AlertTriangle, CheckCircle2, Clock, Zap, Link2, Database } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { getIntentRegistryContract, switchToNetwork, CONTRACTS } from "@/lib/contracts";
+import { getIntentRegistryContract, getZKVerifierContract, getLiquidationExecutorContract, switchToNetwork, CONTRACTS } from "@/lib/contracts";
 import { parseEther } from "ethers";
 import { motion } from "framer-motion";
 
@@ -20,6 +20,8 @@ interface IntentRegistryProps {
 
 export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExecuteIntent }: IntentRegistryProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isExecuting, setIsExecuting] = useState(false);
   const [useBlockchain, setUseBlockchain] = useState(true);
 
   const handleSubmitIntent = async (e: React.FormEvent) => {
@@ -57,8 +59,25 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
         );
         
         toast.info("Transaction submitted. Waiting for confirmation...");
-        await tx.wait();
-        toast.success("Liquidation intent submitted on-chain!");
+        const receipt = await tx.wait();
+        
+        // Extract intentHash from event logs
+        const event = receipt.logs.find((log: any) => {
+          try {
+            const parsed = contract.interface.parseLog(log);
+            return parsed?.name === "IntentSubmitted";
+          } catch {
+            return false;
+          }
+        });
+        
+        if (event) {
+          const parsed = contract.interface.parseLog(event);
+          const intentHash = parsed?.args[0];
+          toast.success(`Intent submitted! Hash: ${intentHash.substring(0, 10)}...`);
+        } else {
+          toast.success("Liquidation intent submitted on-chain!");
+        }
       } else {
         await onSubmitIntent({
           targetUserAddress: formData.get("address") as string,
@@ -78,21 +97,75 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
     }
   };
 
-  const handleVerify = async (id: any) => {
+  const handleVerify = async (id: any, intentHash?: string) => {
+    setIsVerifying(true);
     try {
-      await onVerifyIntent({ intentId: id });
-      toast.success("Intent verification initiated");
-    } catch (e) {
-      toast.error("Verification failed");
+      if (useBlockchain && intentHash) {
+        // Switch to zkEVM network for verification
+        await switchToNetwork(CONTRACTS.ZK_VERIFIER.chainId);
+        
+        const verifierContract = await getZKVerifierContract();
+        
+        // Generate a mock proof (in production, this would come from a ZK proof generator)
+        const mockProof = "0x" + "00".repeat(128); // 128 bytes of mock proof data
+        
+        toast.info("Submitting ZK proof for verification...");
+        const tx = await verifierContract.verifyProof(intentHash, mockProof);
+        
+        toast.info("Waiting for verification confirmation...");
+        await tx.wait();
+        
+        toast.success("ZK proof verified successfully!");
+        
+        // Switch back to Amoy network
+        await switchToNetwork(CONTRACTS.INTENT_REGISTRY.chainId);
+      } else {
+        await onVerifyIntent({ intentId: id });
+        toast.success("Intent verification initiated (simulated)");
+      }
+    } catch (error: any) {
+      console.error("Verification failed:", error);
+      toast.error(error.message || "Verification failed");
+    } finally {
+      setIsVerifying(false);
     }
   };
 
-  const handleExecute = async (id: any) => {
+  const handleExecute = async (id: any, intentHash?: string) => {
+    setIsExecuting(true);
     try {
-      await onExecuteIntent({ intentId: id });
-      toast.success("Liquidation executed successfully");
-    } catch (e) {
-      toast.error("Execution failed");
+      if (useBlockchain && intentHash) {
+        await switchToNetwork(CONTRACTS.LIQUIDATION_EXECUTOR.chainId);
+        
+        const executorContract = await getLiquidationExecutorContract();
+        
+        // Mock asset addresses and amounts for execution
+        const mockAssets = ["0x0000000000000000000000000000000000000001"];
+        const mockAmounts = [parseEther("1000")];
+        
+        toast.info("Executing liquidation...");
+        const tx = await executorContract.executeLiquidation(
+          intentHash,
+          mockAssets,
+          mockAmounts
+        );
+        
+        toast.info("Waiting for execution confirmation...");
+        const receipt = await tx.wait();
+        
+        toast.success("Liquidation executed successfully!");
+        
+        // Switch back to Amoy network
+        await switchToNetwork(CONTRACTS.INTENT_REGISTRY.chainId);
+      } else {
+        await onExecuteIntent({ intentId: id });
+        toast.success("Liquidation executed successfully (simulated)");
+      }
+    } catch (error: any) {
+      console.error("Execution failed:", error);
+      toast.error(error.message || "Execution failed");
+    } finally {
+      setIsExecuting(false);
     }
   };
 
@@ -262,17 +335,24 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
                 </div>
                 <div className="flex items-center gap-3">
                   {intent.status === 'pending' && (
-                    <Button size="sm" variant="outline" onClick={() => handleVerify(intent._id)} className="hover:border-primary/50">
-                      Verify Proof
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => handleVerify(intent._id, intent.intentHash)} 
+                      disabled={isVerifying}
+                      className="hover:border-primary/50"
+                    >
+                      {isVerifying ? "Verifying..." : "Verify Proof"}
                     </Button>
                   )}
                   {intent.status === 'verified' && (
                     <Button 
                       size="sm" 
                       className="bg-gradient-to-r from-primary to-accent text-black hover:opacity-90" 
-                      onClick={() => handleExecute(intent._id)}
+                      onClick={() => handleExecute(intent._id, intent.intentHash)}
+                      disabled={isExecuting}
                     >
-                      Execute
+                      {isExecuting ? "Executing..." : "Execute"}
                     </Button>
                   )}
                   <div className="text-right text-sm text-muted-foreground min-w-[100px]">
@@ -293,4 +373,22 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
       </Card>
     </div>
   );
+}
+
+function getStatusColor(status: string) {
+  switch (status) {
+    case 'verified': return 'bg-green-500/20 text-green-500 border-green-500/30';
+    case 'executed': return 'bg-blue-500/20 text-blue-500 border-blue-500/30';
+    case 'failed': return 'bg-red-500/20 text-red-500 border-red-500/30';
+    default: return 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30';
+  }
+}
+
+function getStatusIcon(status: string) {
+  switch (status) {
+    case 'verified': return <CheckCircle2 className="h-5 w-5" />;
+    case 'executed': return <Zap className="h-5 w-5" />;
+    case 'failed': return <AlertTriangle className="h-5 w-5" />;
+    default: return <Clock className="h-5 w-5" />;
+  }
 }
