@@ -30,7 +30,7 @@ export const getStats = query({
     const intents = await ctx.db.query("intents").collect();
     const executions = await ctx.db.query("executions").collect();
     
-    const totalValueSecured = intents.reduce((acc, curr) => acc + (curr.bondAmount * 100), 0); // Simulated multiplier
+    const totalValueSecured = intents.reduce((acc, curr) => acc + (curr.bondAmount * 100), 0);
     const totalProfit = executions.reduce((acc, curr) => acc + curr.profit, 0);
     
     return {
@@ -38,6 +38,19 @@ export const getStats = query({
       totalExecutions: executions.length,
       totalValueSecured,
       totalProfit,
+    };
+  },
+});
+
+export const getRecentActivity = query({
+  args: {},
+  handler: async (ctx) => {
+    const recentIntents = await ctx.db.query("intents").order("desc").take(5);
+    const recentExecutions = await ctx.db.query("executions").order("desc").take(5);
+    
+    return {
+      intents: recentIntents,
+      executions: recentExecutions,
     };
   },
 });
@@ -55,7 +68,6 @@ export const submitIntent = mutation({
     const user = await ctx.auth.getUserIdentity();
     if (!user) throw new Error("Unauthorized");
 
-    // Find the user in our database to get their ID
     const dbUser = await ctx.db
       .query("users")
       .withIndex("email", (q) => q.eq("email", user.email))
@@ -68,10 +80,10 @@ export const submitIntent = mutation({
       targetUserAddress: args.targetUserAddress,
       targetHealthFactor: args.targetHealthFactor,
       minPrice: args.minPrice,
-      deadline: Date.now() + 3600000, // 1 hour from now
+      deadline: Date.now() + 3600000,
       bondAmount: args.bondAmount,
       status: "pending",
-      intentHash: Math.random().toString(36).substring(7),
+      intentHash: "0x" + Math.random().toString(16).substring(2, 18),
     });
 
     return intentId;
@@ -84,16 +96,17 @@ export const verifyIntent = mutation({
     const intent = await ctx.db.get(args.intentId);
     if (!intent) throw new Error("Intent not found");
 
-    // Simulate verification logic
-    const isValid = Math.random() > 0.1; // 90% success rate
+    // Simulate verification with 95% success rate
+    const isValid = Math.random() > 0.05;
+    const verificationTime = 3.5 + Math.random() * 2; // 3.5-5.5 seconds
 
     await ctx.db.insert("verifications", {
       intentId: args.intentId,
-      proofHash: "0x" + Math.random().toString(16).substring(2),
+      proofHash: "0x" + Math.random().toString(16).substring(2, 66),
       verifiedAt: Date.now(),
       isValid,
       verifierNode: "zkEVM-Verifier-01",
-      cost: 0.03,
+      cost: 0.025 + Math.random() * 0.015, // $0.025-$0.04
     });
 
     if (isValid) {
@@ -119,36 +132,51 @@ export const executeIntent = mutation({
     const intent = await ctx.db.get(args.intentId);
     if (!intent || intent.status !== "verified") throw new Error("Intent not ready for execution");
 
-    const profit = intent.bondAmount * 0.5 + (Math.random() * 100);
+    // More realistic profit calculation: 5-10% of bond + liquidation bonus
+    const liquidationBonus = intent.bondAmount * 100 * (0.05 + Math.random() * 0.05);
+    const profit = liquidationBonus - (intent.bondAmount * 0.1); // Subtract gas costs
 
     await ctx.db.insert("executions", {
       intentId: args.intentId,
       executorId: dbUser._id,
-      txHash: "0x" + Math.random().toString(16).substring(2),
+      txHash: "0x" + Math.random().toString(16).substring(2, 66),
       profit,
       executedAt: Date.now(),
-      chain: "Polygon zkEVM",
+      chain: Math.random() > 0.5 ? "Polygon zkEVM" : "Polygon PoS",
     });
 
     await ctx.db.patch(args.intentId, { status: "executed" });
   },
 });
 
-// Seed data for demo
+// Enhanced seed data with more realistic values
 export const seedData = mutation({
   args: {},
   handler: async (ctx) => {
-    // Clear existing data if needed or just add new
-    // For now, let's just add some market data
-    const assets = ["ETH", "BTC", "MATIC", "USDC"];
+    // Seed market data for multiple assets
+    const assets = [
+      { name: "ETH", basePrice: 3200 },
+      { name: "BTC", basePrice: 65000 },
+      { name: "MATIC", basePrice: 0.85 },
+      { name: "USDC", basePrice: 1.0 },
+      { name: "AAVE", basePrice: 180 },
+      { name: "UNI", basePrice: 12.5 },
+    ];
+
+    const chains = ["1101", "137", "1442"]; // zkEVM, PoS, CDK testnet
+
     for (const asset of assets) {
-      await ctx.db.insert("marketData", {
-        asset,
-        price: Math.random() * 3000,
-        chainId: "1101", // Polygon zkEVM
-        timestamp: Date.now(),
-        confidence: 0.99,
-      });
+      for (const chainId of chains) {
+        // Add slight price variance per chain
+        const priceVariance = 1 + (Math.random() - 0.5) * 0.02; // ±1%
+        await ctx.db.insert("marketData", {
+          asset: asset.name,
+          price: asset.basePrice * priceVariance,
+          chainId,
+          timestamp: Date.now(),
+          confidence: 0.97 + Math.random() * 0.03, // 97-100%
+        });
+      }
     }
   },
 });
