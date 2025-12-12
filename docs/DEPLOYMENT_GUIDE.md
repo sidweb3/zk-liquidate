@@ -47,3 +47,15 @@ This guide walks you through deploying the zkLiquidate protocol to Polygon testn
 ### Option B: Hardhat/Foundry (Advanced Users)
 
 1. **Development Environment Setup**
+   - Install Hardhat and Foundry
+   - Configure your local development environment
+   - Set up testnet accounts and wallets
+
+2. **Deployment Scripts**
+   - `scripts/deploy-zkevm.ts`
+   - `scripts/test-flow.ts`
+
+3. **Testing and Validation**
+   - Run test cases to verify contract functionality
+   - Validate ZK proof verification and execution
+   - Test liquidation scenarios and reward distribution
