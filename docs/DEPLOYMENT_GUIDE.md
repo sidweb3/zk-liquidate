@@ -52,10 +52,18 @@ This guide walks you through deploying the zkLiquidate protocol to Polygon testn
    - Set up testnet accounts and wallets
 
 2. **Deployment Scripts**
-   - `scripts/deploy-zkevm.ts`
-   - `scripts/test-flow.ts`
+   - Create deployment scripts for each network
+   - Configure environment variables
 
 3. **Testing and Validation**
    - Run test cases to verify contract functionality
    - Validate ZK proof verification and execution
    - Test liquidation scenarios and reward distribution
+
+---
+
+## Smart Contract Code
+
+Below are the three core smart contracts. Copy each one into a separate file in Remix IDE.
+
+### 1. IntentRegistry.sol
