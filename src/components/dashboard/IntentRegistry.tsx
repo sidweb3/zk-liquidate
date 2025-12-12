@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { AlertTriangle, CheckCircle2, Clock, Zap } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { getIntentRegistryContract, switchToNetwork, CONTRACTS } from "@/lib/contracts";
+import { parseEther } from "ethers";
 
 interface IntentRegistryProps {
   intents: any[] | undefined;
@@ -17,25 +19,53 @@ interface IntentRegistryProps {
 
 export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExecuteIntent }: IntentRegistryProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [useBlockchain, setUseBlockchain] = useState(true);
 
   const handleSubmitIntent = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    
     try {
       const form = e.target as HTMLFormElement;
       const formData = new FormData(form);
       
-      await onSubmitIntent({
-        targetUserAddress: formData.get("address") as string,
-        targetHealthFactor: parseFloat(formData.get("hf") as string),
-        minPrice: parseFloat(formData.get("price") as string),
-        bondAmount: parseFloat(formData.get("bond") as string),
-      });
+      if (useBlockchain) {
+        // Blockchain submission
+        await switchToNetwork(CONTRACTS.INTENT_REGISTRY.chainId);
+        
+        const contract = await getIntentRegistryContract();
+        const targetUser = formData.get("address") as string;
+        const targetHealthFactor = Math.floor(parseFloat(formData.get("hf") as string) * 100);
+        const minPrice = parseEther(formData.get("price") as string);
+        const deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
+        const bondAmount = parseEther(formData.get("bond") as string);
+        
+        const tx = await contract.submitIntent(
+          targetUser,
+          targetHealthFactor,
+          minPrice,
+          deadline,
+          { value: bondAmount }
+        );
+        
+        toast.info("Transaction submitted. Waiting for confirmation...");
+        await tx.wait();
+        toast.success("Liquidation intent submitted on-chain!");
+      } else {
+        // Fallback to Convex simulation
+        await onSubmitIntent({
+          targetUserAddress: formData.get("address") as string,
+          targetHealthFactor: parseFloat(formData.get("hf") as string),
+          minPrice: parseFloat(formData.get("price") as string),
+          bondAmount: parseFloat(formData.get("bond") as string),
+        });
+        toast.success("Liquidation intent submitted (simulated)");
+      }
       
-      toast.success("Liquidation intent submitted to registry");
-      (e.target as HTMLFormElement).reset();
-    } catch (error) {
-      toast.error("Failed to submit intent");
+      form.reset();
+    } catch (error: any) {
+      console.error("Failed to submit intent:", error);
+      toast.error(error.message || "Failed to submit intent");
     } finally {
       setIsSubmitting(false);
     }
@@ -63,52 +93,67 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold tracking-tight">Liquidation Intent Registry</h2>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <Zap className="mr-2 h-4 w-4" /> New Liquidation Intent
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px] bg-card border-border">
-            <DialogHeader>
-              <DialogTitle>Submit Liquidation Intent</DialogTitle>
-              <DialogDescription>
-                Create a new liquidation intent. Requires 10 POL bond.
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmitIntent} className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="address">Target User Address</Label>
-                <Input id="address" name="address" placeholder="0x..." required className="bg-background border-input" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+        <div className="flex gap-2">
+          <Button
+            variant={useBlockchain ? "default" : "outline"}
+            size="sm"
+            onClick={() => setUseBlockchain(!useBlockchain)}
+          >
+            {useBlockchain ? "🔗 Blockchain" : "💾 Simulated"}
+          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Zap className="mr-2 h-4 w-4" /> New Liquidation Intent
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px] bg-card border-border">
+              <DialogHeader>
+                <DialogTitle>Submit Liquidation Intent</DialogTitle>
+                <DialogDescription>
+                  {useBlockchain 
+                    ? "Create a new liquidation intent on-chain. Requires 10 POL bond."
+                    : "Create a simulated liquidation intent for testing."}
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmitIntent} className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="hf">Target HF</Label>
-                  <Input id="hf" name="hf" type="number" step="0.01" placeholder="0.95" required className="bg-background border-input" />
+                  <Label htmlFor="address">Target User Address</Label>
+                  <Input id="address" name="address" placeholder="0x..." required className="bg-background border-input" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="hf">Target HF</Label>
+                    <Input id="hf" name="hf" type="number" step="0.01" placeholder="0.95" required className="bg-background border-input" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="price">Min Price</Label>
+                    <Input id="price" name="price" type="number" placeholder="2500" required className="bg-background border-input" />
+                  </div>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="price">Min Price</Label>
-                  <Input id="price" name="price" type="number" placeholder="2500" required className="bg-background border-input" />
+                  <Label htmlFor="bond">Bond Amount (POL)</Label>
+                  <Input id="bond" name="bond" type="number" defaultValue="10" readOnly className="bg-muted border-input" />
                 </div>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="bond">Bond Amount (POL)</Label>
-                <Input id="bond" name="bond" type="number" defaultValue="10" readOnly className="bg-muted border-input" />
-              </div>
-              <DialogFooter>
-                <Button type="submit" disabled={isSubmitting} className="bg-primary text-primary-foreground">
-                  {isSubmitting ? "Submitting..." : "Submit Intent"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+                <DialogFooter>
+                  <Button type="submit" disabled={isSubmitting} className="bg-primary text-primary-foreground">
+                    {isSubmitting ? "Submitting..." : "Submit Intent"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle>Recent Intents</CardTitle>
-          <CardDescription>Live feed of liquidation intents across AggLayer</CardDescription>
+          <CardDescription>
+            {useBlockchain 
+              ? "Live feed from deployed smart contracts"
+              : "Simulated liquidation intents for testing"}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">

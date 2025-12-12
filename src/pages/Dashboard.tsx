@@ -8,9 +8,13 @@ import { StatsOverview } from "@/components/dashboard/StatsOverview";
 import { IntentRegistry } from "@/components/dashboard/IntentRegistry";
 import { VerifierStatus } from "@/components/dashboard/VerifierStatus";
 import { RiskOracle } from "@/components/dashboard/RiskOracle";
+import { useWalletConnection } from "@/hooks/useContract";
+import { Badge } from "@/components/ui/badge";
 
 export default function Dashboard() {
   const { signOut } = useAuth();
+  const { isConnected, address, chainId } = useWalletConnection();
+  
   const stats = useQuery(api.protocol.getStats);
   const intents = useQuery(api.protocol.getIntents, {});
   const marketData = useQuery(api.protocol.getMarketData);
@@ -30,6 +34,24 @@ export default function Dashboard() {
       <DashboardHeader onSeed={handleSeed} onSignOut={signOut} />
 
       <main className="flex-1 container mx-auto px-4 py-8">
+        {/* Wallet Status Banner */}
+        {isConnected && (
+          <div className="mb-6 p-4 rounded-lg bg-card border border-border flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <div>
+                <div className="text-sm font-medium">Wallet Connected</div>
+                <div className="text-xs text-muted-foreground font-mono">
+                  {address?.substring(0, 6)}...{address?.substring(38)}
+                </div>
+              </div>
+            </div>
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+              Chain ID: {chainId}
+            </Badge>
+          </div>
+        )}
+
         <StatsOverview stats={stats} />
 
         <Tabs defaultValue="registry" className="space-y-4">

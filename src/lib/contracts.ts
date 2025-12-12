@@ -37,3 +37,73 @@ export const LIQUIDATION_EXECUTOR_ABI = [
   "function withdrawInsurance(uint256 amount) external",
   "event LiquidationExecuted(bytes32 indexed intentHash, address indexed executor, uint256 profit)",
 ] as const;
+
+// Helper to get contract instance
+import { BrowserProvider, Contract } from "ethers";
+
+export async function getIntentRegistryContract() {
+  if (typeof window.ethereum === "undefined") {
+    throw new Error("No Web3 wallet detected");
+  }
+  const provider = new BrowserProvider(window.ethereum);
+  const signer = await provider.getSigner();
+  return new Contract(CONTRACTS.INTENT_REGISTRY.address, INTENT_REGISTRY_ABI, signer);
+}
+
+export async function getZKVerifierContract() {
+  if (typeof window.ethereum === "undefined") {
+    throw new Error("No Web3 wallet detected");
+  }
+  const provider = new BrowserProvider(window.ethereum);
+  const signer = await provider.getSigner();
+  return new Contract(CONTRACTS.ZK_VERIFIER.address, ZK_VERIFIER_ABI, signer);
+}
+
+export async function getLiquidationExecutorContract() {
+  if (typeof window.ethereum === "undefined") {
+    throw new Error("No Web3 wallet detected");
+  }
+  const provider = new BrowserProvider(window.ethereum);
+  const signer = await provider.getSigner();
+  return new Contract(CONTRACTS.LIQUIDATION_EXECUTOR.address, LIQUIDATION_EXECUTOR_ABI, signer);
+}
+
+// Helper to switch network
+export async function switchToNetwork(chainId: number) {
+  if (typeof window.ethereum === "undefined") {
+    throw new Error("No Web3 wallet detected");
+  }
+  
+  try {
+    await window.ethereum.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: `0x${chainId.toString(16)}` }],
+    });
+  } catch (error: any) {
+    // Network not added, try to add it
+    if (error.code === 4902) {
+      const networkConfig = chainId === 80002 
+        ? {
+            chainId: "0x13882",
+            chainName: "Polygon Amoy Testnet",
+            rpcUrls: ["https://rpc-amoy.polygon.technology"],
+            nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
+            blockExplorerUrls: ["https://amoy.polygonscan.com/"],
+          }
+        : {
+            chainId: "0x5a2",
+            chainName: "Polygon zkEVM Testnet",
+            rpcUrls: ["https://rpc.public.zkevm-test.net"],
+            nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+            blockExplorerUrls: ["https://testnet-zkevm.polygonscan.com/"],
+          };
+      
+      await window.ethereum.request({
+        method: "wallet_addEthereumChain",
+        params: [networkConfig],
+      });
+    } else {
+      throw error;
+    }
+  }
+}
