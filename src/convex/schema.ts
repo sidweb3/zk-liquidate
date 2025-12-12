@@ -30,6 +30,13 @@ const schema = defineSchema(
       isAnonymous: v.optional(v.boolean()), // is the user anonymous. do not remove
 
       role: v.optional(roleValidator), // role of the user. do not remove
+      
+      // New: Reputation system
+      reputationScore: v.optional(v.number()),
+      totalLiquidations: v.optional(v.number()),
+      successfulLiquidations: v.optional(v.number()),
+      totalProfit: v.optional(v.number()),
+      badges: v.optional(v.array(v.string())),
     }).index("email", ["email"]), // index for the email. do not remove or modify
 
     // Liquidation Intent Registry
@@ -47,8 +54,15 @@ const schema = defineSchema(
         v.literal("failed")
       ),
       intentHash: v.string(),
+      
+      // New: AI Risk Scoring
+      aiRiskScore: v.optional(v.number()),
+      predictedProfit: v.optional(v.number()),
+      gasEstimate: v.optional(v.number()),
+      optimalExecutionTime: v.optional(v.number()),
     }).index("by_status", ["status"])
-      .index("by_liquidator", ["liquidatorId"]),
+      .index("by_liquidator", ["liquidatorId"])
+      .index("by_risk_score", ["aiRiskScore"]),
 
     // ZK Liquidation Verifier
     verifications: defineTable({
@@ -68,7 +82,10 @@ const schema = defineSchema(
       profit: v.number(),
       executedAt: v.number(),
       chain: v.string(),
-    }).index("by_intent", ["intentId"]),
+      gasUsed: v.optional(v.number()),
+      gasCost: v.optional(v.number()),
+    }).index("by_intent", ["intentId"])
+      .index("by_executor", ["executorId"]),
 
     // Cross-Chain Risk Oracle
     marketData: defineTable({
@@ -78,6 +95,53 @@ const schema = defineSchema(
       timestamp: v.number(),
       confidence: v.number(),
     }).index("by_asset", ["asset"]),
+
+    // New: Liquidation Simulations
+    simulations: defineTable({
+      userId: v.id("users"),
+      targetAddress: v.string(),
+      targetHealthFactor: v.number(),
+      estimatedProfit: v.number(),
+      estimatedGas: v.number(),
+      simulatedAt: v.number(),
+      success: v.boolean(),
+      errorMessage: v.optional(v.string()),
+    }).index("by_user", ["userId"]),
+
+    // New: Automated Bot Configurations
+    botConfigs: defineTable({
+      userId: v.id("users"),
+      isActive: v.boolean(),
+      minHealthFactor: v.number(),
+      maxHealthFactor: v.number(),
+      minProfitThreshold: v.number(),
+      targetChains: v.array(v.string()),
+      autoExecute: v.boolean(),
+      notificationEmail: v.optional(v.string()),
+    }).index("by_user", ["userId"])
+      .index("by_active", ["isActive"]),
+
+    // New: Insurance Pool Stakes
+    insuranceStakes: defineTable({
+      userId: v.id("users"),
+      amount: v.number(),
+      stakedAt: v.number(),
+      unstakedAt: v.optional(v.number()),
+      rewardsEarned: v.number(),
+      isActive: v.boolean(),
+    }).index("by_user", ["userId"])
+      .index("by_active", ["isActive"]),
+
+    // New: Performance Analytics
+    analytics: defineTable({
+      date: v.string(), // YYYY-MM-DD format
+      totalIntents: v.number(),
+      totalExecutions: v.number(),
+      totalVolume: v.number(),
+      totalProfit: v.number(),
+      avgGasCost: v.number(),
+      successRate: v.number(),
+    }).index("by_date", ["date"]),
   },
   {
     schemaValidation: false,

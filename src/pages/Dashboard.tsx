@@ -8,6 +8,9 @@ import { StatsOverview } from "@/components/dashboard/StatsOverview";
 import { IntentRegistry } from "@/components/dashboard/IntentRegistry";
 import { VerifierStatus } from "@/components/dashboard/VerifierStatus";
 import { RiskOracle } from "@/components/dashboard/RiskOracle";
+import { LiquidationSimulator } from "@/components/dashboard/LiquidationSimulator";
+import { AutomatedBot } from "@/components/dashboard/AutomatedBot";
+import { AnalyticsChart } from "@/components/dashboard/AnalyticsChart";
 import { useWalletConnection } from "@/hooks/useContract";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -25,6 +28,7 @@ export default function Dashboard() {
   const submitIntent = useMutation(api.protocol.submitIntent);
   const verifyIntent = useMutation(api.protocol.verifyIntent);
   const executeIntent = useMutation(api.protocol.executeIntent);
+  const runSimulation = useMutation(api.protocol.runSimulation);
   const seedData = useMutation(api.protocol.seedData);
 
   const handleSeed = async () => {
@@ -140,6 +144,24 @@ export default function Dashboard() {
             >
               Risk Oracle
             </TabsTrigger>
+            <TabsTrigger 
+              value="simulator"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-6 py-3 rounded-lg transition-all"
+            >
+              Simulator
+            </TabsTrigger>
+            <TabsTrigger 
+              value="bot"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-6 py-3 rounded-lg transition-all"
+            >
+              Auto Bot
+            </TabsTrigger>
+            <TabsTrigger 
+              value="analytics"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-6 py-3 rounded-lg transition-all"
+            >
+              Analytics
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="registry" className="space-y-4">
@@ -157,6 +179,18 @@ export default function Dashboard() {
 
           <TabsContent value="oracle">
             <RiskOracle marketData={marketData} />
+          </TabsContent>
+
+          <TabsContent value="simulator">
+            <LiquidationSimulator onRunSimulation={runSimulation} />
+          </TabsContent>
+
+          <TabsContent value="bot">
+            <AutomatedBot />
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <AnalyticsChart />
           </TabsContent>
         </Tabs>
       </main>
