@@ -1,10 +1,51 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { ArrowRight, Shield, Zap, Activity, Lock } from "lucide-react";
-import { useNavigate } from "react-router";
+import { ArrowRight, Shield, Zap, Activity, Lock, Wallet } from "lucide-react";
+import { useState } from "react";
+import { BrowserProvider } from "ethers";
+import { toast } from "sonner";
 
 export default function Landing() {
-  const navigate = useNavigate();
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+
+  const handleWalletConnect = async () => {
+    setIsConnecting(true);
+    
+    try {
+      if (typeof window.ethereum === "undefined") {
+        toast.error("No Web3 wallet detected. Please install MetaMask or Trust Wallet.");
+        setIsConnecting(false);
+        return;
+      }
+
+      const provider = new BrowserProvider(window.ethereum);
+      const accounts = await provider.send("eth_requestAccounts", []);
+      
+      if (accounts.length === 0) {
+        toast.error("No accounts found. Please unlock your wallet.");
+        setIsConnecting(false);
+        return;
+      }
+
+      const address = accounts[0];
+      setWalletAddress(address);
+      toast.success(`Connected: ${address.substring(0, 6)}...${address.substring(38)}`);
+      
+    } catch (error: any) {
+      console.error("Wallet connection error:", error);
+      
+      if (error.code === 4001) {
+        toast.error("Connection request rejected.");
+      } else if (error.code === -32002) {
+        toast.error("Connection request already pending. Please check your wallet.");
+      } else {
+        toast.error(`Failed to connect wallet: ${error.message || 'Unknown error'}`);
+      }
+    } finally {
+      setIsConnecting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden relative">
@@ -24,12 +65,21 @@ export default function Landing() {
           <span className="text-xl font-bold tracking-tighter">zkLiquidate</span>
         </div>
         <div className="flex gap-4">
-          <Button variant="ghost" onClick={() => navigate("/auth")}>Login</Button>
           <Button 
             className="bg-primary text-primary-foreground hover:bg-primary/90"
-            onClick={() => navigate("/auth")}
+            onClick={handleWalletConnect}
+            disabled={isConnecting}
           >
-            Launch App
+            {isConnecting ? (
+              "Connecting..."
+            ) : walletAddress ? (
+              `${walletAddress.substring(0, 6)}...${walletAddress.substring(38)}`
+            ) : (
+              <>
+                <Wallet className="mr-2 h-4 w-4" />
+                Connect Wallet
+              </>
+            )}
           </Button>
         </div>
       </nav>
@@ -56,9 +106,19 @@ export default function Landing() {
             <Button 
               size="lg" 
               className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8"
-              onClick={() => navigate("/auth")}
+              onClick={handleWalletConnect}
+              disabled={isConnecting}
             >
-              Start Liquidating <ArrowRight className="ml-2 w-5 h-5" />
+              {isConnecting ? (
+                "Connecting..."
+              ) : walletAddress ? (
+                <>Dashboard <ArrowRight className="ml-2 w-5 h-5" /></>
+              ) : (
+                <>
+                  <Wallet className="mr-2 w-5 h-5" />
+                  Connect Wallet
+                </>
+              )}
             </Button>
             <Button 
               size="lg" 
