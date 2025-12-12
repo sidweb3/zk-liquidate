@@ -55,44 +55,60 @@ export const LIQUIDATION_EXECUTOR_ABI = [
   "event LiquidationExecuted(bytes32 indexed intentHash, address indexed executor, uint256 profit)",
 ] as const;
 
-// Helper to get contract instance
+// Helper to get contract instance with better error handling
 import { BrowserProvider, Contract } from "ethers";
 
 export async function getIntentRegistryContract() {
   if (typeof window.ethereum === "undefined") {
-    throw new Error("No Web3 wallet detected");
+    throw new Error("No Web3 wallet detected. Please install MetaMask or another Web3 wallet.");
   }
-  const provider = new BrowserProvider(window.ethereum);
-  const signer = await provider.getSigner();
-  return new Contract(CONTRACTS.INTENT_REGISTRY.address, INTENT_REGISTRY_ABI, signer);
+  try {
+    const provider = new BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    return new Contract(CONTRACTS.INTENT_REGISTRY.address, INTENT_REGISTRY_ABI, signer);
+  } catch (error: any) {
+    throw new Error(`Failed to connect to IntentRegistry contract: ${error.message}`);
+  }
 }
 
 export async function getZKVerifierContract() {
   if (typeof window.ethereum === "undefined") {
-    throw new Error("No Web3 wallet detected");
+    throw new Error("No Web3 wallet detected. Please install MetaMask or another Web3 wallet.");
   }
-  const provider = new BrowserProvider(window.ethereum);
-  const signer = await provider.getSigner();
-  return new Contract(CONTRACTS.ZK_VERIFIER.address, ZK_VERIFIER_ABI, signer);
+  try {
+    const provider = new BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    return new Contract(CONTRACTS.ZK_VERIFIER.address, ZK_VERIFIER_ABI, signer);
+  } catch (error: any) {
+    throw new Error(`Failed to connect to ZKVerifier contract: ${error.message}`);
+  }
 }
 
 export async function getLiquidationExecutorContract() {
   if (typeof window.ethereum === "undefined") {
-    throw new Error("No Web3 wallet detected");
+    throw new Error("No Web3 wallet detected. Please install MetaMask or another Web3 wallet.");
   }
-  const provider = new BrowserProvider(window.ethereum);
-  const signer = await provider.getSigner();
-  return new Contract(CONTRACTS.LIQUIDATION_EXECUTOR.address, LIQUIDATION_EXECUTOR_ABI, signer);
+  try {
+    const provider = new BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    return new Contract(CONTRACTS.LIQUIDATION_EXECUTOR.address, LIQUIDATION_EXECUTOR_ABI, signer);
+  } catch (error: any) {
+    throw new Error(`Failed to connect to LiquidationExecutor contract: ${error.message}`);
+  }
 }
 
-// Helper to get ERC20 token contract
+// Helper to get ERC20 token contract with error handling
 export async function getTokenContract(tokenAddress: string) {
   if (typeof window.ethereum === "undefined") {
-    throw new Error("No Web3 wallet detected");
+    throw new Error("No Web3 wallet detected. Please install MetaMask or another Web3 wallet.");
   }
-  const provider = new BrowserProvider(window.ethereum);
-  const signer = await provider.getSigner();
-  return new Contract(tokenAddress, ERC20_ABI, signer);
+  try {
+    const provider = new BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    return new Contract(tokenAddress, ERC20_ABI, signer);
+  } catch (error: any) {
+    throw new Error(`Failed to connect to token contract at ${tokenAddress}: ${error.message}`);
+  }
 }
 
 // Helper to fetch user's collateral assets
