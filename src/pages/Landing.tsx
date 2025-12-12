@@ -355,8 +355,8 @@ export default function Landing() {
             <div>
               <h4 className="font-bold mb-4">Protocol</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary transition-colors">Documentation</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Whitepaper</a></li>
+                <li><button onClick={() => navigate("/documentation")} className="hover:text-primary transition-colors">Documentation</button></li>
+                <li><button onClick={() => navigate("/whitepaper")} className="hover:text-primary transition-colors">Whitepaper</button></li>
                 <li><a href="#" className="hover:text-primary transition-colors">Security Audits</a></li>
                 <li><a href="#" className="hover:text-primary transition-colors">Bug Bounty</a></li>
               </ul>
@@ -367,8 +367,8 @@ export default function Landing() {
               <h4 className="font-bold mb-4">Developers</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="#" className="hover:text-primary transition-colors">GitHub</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">API Reference</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Integration Guide</a></li>
+                <li><button onClick={() => navigate("/documentation")} className="hover:text-primary transition-colors">API Reference</button></li>
+                <li><button onClick={() => navigate("/documentation")} className="hover:text-primary transition-colors">Integration Guide</button></li>
                 <li><a href="#" className="hover:text-primary transition-colors">SDK</a></li>
               </ul>
             </div>
@@ -377,9 +377,9 @@ export default function Landing() {
             <div>
               <h4 className="font-bold mb-4">Community</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary transition-colors">Discord</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Twitter</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Blog</a></li>
+                <li><button onClick={() => navigate("/community")} className="hover:text-primary transition-colors">Discord</button></li>
+                <li><button onClick={() => navigate("/community")} className="hover:text-primary transition-colors">Twitter</button></li>
+                <li><button onClick={() => navigate("/community")} className="hover:text-primary transition-colors">Blog</button></li>
                 <li><a href="#" className="hover:text-primary transition-colors">Forum</a></li>
               </ul>
             </div>

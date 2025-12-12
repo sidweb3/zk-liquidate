@@ -13,6 +13,9 @@ import "./types/global.d.ts";
 const Landing = lazy(() => import("./pages/Landing.tsx"));
 const WalletConnect = lazy(() => import("./pages/WalletConnect.tsx"));
 const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
+const Documentation = lazy(() => import("./pages/Documentation.tsx"));
+const Whitepaper = lazy(() => import("./pages/Whitepaper.tsx"));
+const Community = lazy(() => import("./pages/Community.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 // Simple loading fallback for route transitions
@@ -61,6 +64,9 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/" element={<Landing />} />
               <Route path="/wallet-connect" element={<WalletConnect />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/documentation" element={<Documentation />} />
+              <Route path="/whitepaper" element={<Whitepaper />} />
+              <Route path="/community" element={<Community />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
