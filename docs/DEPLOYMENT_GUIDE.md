@@ -10,9 +10,9 @@ This guide walks you through deploying the zkLiquidate protocol to Polygon testn
 ## Architecture Summary
 
 ### Smart Contracts (Minimized to 3)
-1. **IntentRegistry.sol** (Polygon PoS Testnet) - Intent submission, staking, and registry
+1. **IntentRegistry.sol** (Polygon Amoy Testnet) - Intent submission, staking, and registry
 2. **ZKVerifier.sol** (Polygon zkEVM Testnet) - ZK proof verification and validation
-3. **LiquidationExecutor.sol** (Polygon PoS Testnet) - Execution, insurance pool, and rewards
+3. **LiquidationExecutor.sol** (Polygon Amoy Testnet) - Execution, insurance pool, and rewards
 
 **Note:** We've combined AggLayerExecutor + InsurancePool into LiquidationExecutor to minimize deployments.
 
@@ -25,17 +25,17 @@ This guide walks you through deploying the zkLiquidate protocol to Polygon testn
    - Create or import a wallet
 
 2. **Testnet Tokens**
-   - Get Polygon Mumbai (PoS) testnet tokens: https://faucet.polygon.technology/
+   - Get Polygon Amoy (PoS) testnet tokens: https://faucet.polygon.technology/
    - Get Polygon zkEVM testnet tokens: https://faucet.polygon.technology/
 
 3. **Network Configuration in MetaMask**
    
-   **Polygon Mumbai (PoS Testnet):**
-   - Network Name: `Polygon Mumbai`
-   - RPC URL: `https://rpc-mumbai.maticvigil.com/`
-   - Chain ID: `80001`
+   **Polygon Amoy (PoS Testnet):**
+   - Network Name: `Polygon Amoy Testnet`
+   - RPC URL: `https://rpc-amoy.polygon.technology`
+   - Chain ID: `80002`
    - Currency Symbol: `MATIC`
-   - Block Explorer: `https://mumbai.polygonscan.com/`
+   - Block Explorer: `https://amoy.polygonscan.com/`
 
    **Polygon zkEVM Testnet:**
    - Network Name: `Polygon zkEVM Testnet`
