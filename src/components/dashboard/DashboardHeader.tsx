@@ -18,9 +18,11 @@ export function DashboardHeader({ onSeed, onSignOut }: DashboardHeaderProps) {
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary via-accent to-secondary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-              <Zap className="w-6 h-6 text-black" />
-            </div>
+            <img 
+              src="/zklogo.png" 
+              alt="zkLiquidate Logo" 
+              className="w-10 h-10 rounded-xl shadow-lg shadow-primary/20"
+            />
             <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent rounded-xl blur-md opacity-50 -z-10" />
           </div>
           <div>

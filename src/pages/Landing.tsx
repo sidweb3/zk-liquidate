@@ -22,9 +22,11 @@ export default function Landing() {
       {/* Navbar */}
       <nav className="container mx-auto px-6 py-6 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-            <Zap className="w-5 h-5 text-black" />
-          </div>
+          <img 
+            src="/zklogo.png" 
+            alt="zkLiquidate Logo" 
+            className="w-8 h-8 rounded-lg"
+          />
           <span className="text-xl font-bold tracking-tighter">zkLiquidate</span>
         </div>
         <div className="flex gap-4">
@@ -330,9 +332,11 @@ export default function Landing() {
             {/* Brand */}
             <div className="md:col-span-1">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-black" />
-                </div>
+                <img 
+                  src="/zklogo.png" 
+                  alt="zkLiquidate Logo" 
+                  className="w-8 h-8 rounded-lg"
+                />
                 <span className="text-xl font-bold tracking-tighter">zkLiquidate</span>
               </div>
               <p className="text-sm text-muted-foreground mb-4">
