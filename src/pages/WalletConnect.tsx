@@ -39,12 +39,17 @@ export default function WalletConnect() {
     } catch (error: any) {
       console.error("Wallet connection error:", error);
       
+      // Handle specific error codes
       if (error.code === 4001) {
         toast.error("Connection request rejected.");
-      } else if (error.code === -32002) {
-        toast.error("Connection request already pending. Please check your wallet.");
+      } else if (error.code === -32002 || error.message?.includes("Already processing")) {
+        toast.error("Connection request already pending. Please check your wallet extension.");
+      } else if (error.code === -32603) {
+        toast.error("Internal wallet error. Please try again.");
       } else {
-        toast.error(`Failed to connect wallet: ${error.message || 'Unknown error'}`);
+        // Extract a cleaner error message
+        const errorMsg = error.reason || error.message || 'Unknown error';
+        toast.error(`Failed to connect: ${errorMsg}`);
       }
     } finally {
       setIsConnecting(false);
