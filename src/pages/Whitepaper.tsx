@@ -61,13 +61,16 @@ export default function Whitepaper() {
               </CardHeader>
               <CardContent className="space-y-4 text-muted-foreground leading-relaxed">
                 <p className="text-lg">
-                  <strong className="text-foreground">zkLiquidate</strong> introduces a revolutionary approach to cross-chain liquidations by combining cutting-edge <strong className="text-primary">zero-knowledge proofs</strong> with <strong className="text-accent">Polygon's AggLayer</strong> technology. This whitepaper presents the comprehensive technical architecture, innovative economic model, and robust security guarantees that position zkLiquidate as the future of institutional-grade DeFi liquidations.
+                  <strong className="text-foreground">zkLiquidate</strong> introduces a novel approach to cross-chain liquidations by combining cutting-edge <strong className="text-primary">zero-knowledge proofs</strong> with <strong className="text-accent">Polygon's AggLayer</strong> technology. This whitepaper presents the comprehensive technical architecture, innovative economic model, and robust security design that positions zkLiquidate as a next-generation DeFi liquidation protocol.
                 </p>
                 <p>
-                  Traditional liquidation mechanisms are plagued by critical vulnerabilities: oracle desynchronization causing failed liquidations, MEV exploitation draining liquidator profits, lack of cryptographic guarantees for cross-chain execution, and prohibitive gas costs. zkLiquidate eliminates these pain points through <strong className="text-foreground">ZK-verified liquidation intents</strong> that ensure mathematical certainty of liquidation conditions before execution, achieving a <strong className="text-green-500">99.8% success rate</strong> with <strong className="text-primary">4.2-second verification</strong> at just <strong className="text-accent">$0.03 per proof</strong>.
+                  Traditional liquidation mechanisms face critical vulnerabilities: oracle desynchronization causing failed liquidations, MEV exploitation draining liquidator profits, lack of cryptographic guarantees for cross-chain execution, and prohibitive gas costs. zkLiquidate addresses these pain points through <strong className="text-foreground">ZK-verified liquidation intents</strong> that ensure mathematical certainty of liquidation conditions before execution. In internal testnet simulations, zkLiquidate demonstrates near-instant verification and consistently low execution costs, validating the feasibility of ZK-verified liquidation intents.
                 </p>
                 <p>
-                  By leveraging Plonky2's advanced ZK-SNARK technology and Polygon AggLayer's unified liquidity layer, zkLiquidate unlocks the <strong className="text-foreground">$50B+ cross-chain lending opportunity</strong> while providing institutional-grade security, compliance-ready audit trails, and unprecedented capital efficiency for liquidators.
+                  By leveraging Plonky2's advanced ZK-SNARK technology and Polygon AggLayer's unified liquidity layer, zkLiquidate targets the cross-chain lending market while providing institutional-grade security, compliance-ready audit trails, and unprecedented capital efficiency for liquidators.
+                </p>
+                <p className="text-sm italic border-l-2 border-primary/30 pl-4 bg-muted/30 p-3 rounded">
+                  <strong>Note:</strong> Market size figures and revenue projections are indicative estimates used for design motivation and do not represent validated financial forecasts.
                 </p>
               </CardContent>
             </Card>
@@ -116,9 +119,9 @@ export default function Whitepaper() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-muted-foreground space-y-4 leading-relaxed">
-                  <h4 className="font-bold text-foreground text-lg">1.1 The $50B Cross-Chain Lending Market</h4>
+                  <h4 className="font-bold text-foreground text-lg">1.1 The Cross-Chain Lending Opportunity</h4>
                   <p>
-                    The decentralized finance (DeFi) lending market has experienced exponential growth, surpassing <strong className="text-foreground">$50 billion in total value locked (TVL)</strong> across multiple blockchain networks. Cross-chain lending protocols like Aave, Compound, and Radiant Capital are expanding to capture liquidity across Ethereum, Polygon, Arbitrum, and emerging Layer 2 solutions.
+                    The decentralized finance (DeFi) lending market has experienced exponential growth across multiple blockchain networks. Cross-chain lending protocols like Aave, Compound, and Radiant Capital are expanding to capture liquidity across Ethereum, Polygon, Arbitrum, and emerging Layer 2 solutions, representing a significant market opportunity.
                   </p>
                   <p>
                     However, this multi-chain expansion introduces critical challenges for liquidation mechanisms—the backbone of lending protocol solvency. Current liquidation systems suffer from:
@@ -137,19 +140,19 @@ export default function Whitepaper() {
                   <div className="grid md:grid-cols-2 gap-4 my-4">
                     <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
                       <div className="text-2xl font-bold text-primary mb-1">99.8%</div>
-                      <div className="text-sm">Success Rate</div>
+                      <div className="text-sm">Testnet Success Rate</div>
                     </div>
                     <div className="p-4 rounded-lg bg-accent/10 border border-accent/20">
-                      <div className="text-2xl font-bold text-accent mb-1">4.2s</div>
+                      <div className="text-2xl font-bold text-accent mb-1">~4.2s</div>
                       <div className="text-sm">Avg Verification Time</div>
                     </div>
                     <div className="p-4 rounded-lg bg-secondary/10 border border-secondary/20">
-                      <div className="text-2xl font-bold text-secondary mb-1">$0.03</div>
-                      <div className="text-sm">Proof Cost</div>
+                      <div className="text-2xl font-bold text-secondary mb-1">~$0.03</div>
+                      <div className="text-sm">Est. Proof Cost</div>
                     </div>
                     <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
-                      <div className="text-2xl font-bold text-green-500 mb-1">7.8%</div>
-                      <div className="text-sm">Avg Profit Margin</div>
+                      <div className="text-2xl font-bold text-green-500 mb-1">1,200+</div>
+                      <div className="text-sm">Testnet Simulations</div>
                     </div>
                   </div>
                 </CardContent>
@@ -312,13 +315,16 @@ export default function Whitepaper() {
 
                   <h4 className="font-bold text-foreground text-lg mt-6">4.2 Projected Economics</h4>
                   <p>
-                    Based on current DeFi liquidation volumes and our competitive advantages:
+                    Indicative projections based on DeFi liquidation market analysis:
                   </p>
                   <ul className="list-disc list-inside space-y-1 ml-4">
-                    <li><strong>Year 1:</strong> $2.5M in liquidation volume, $125K protocol revenue</li>
-                    <li><strong>Year 2:</strong> $25M in liquidation volume, $1.25M protocol revenue</li>
-                    <li><strong>Year 3:</strong> $100M+ in liquidation volume, $5M+ protocol revenue</li>
+                    <li><strong>Year 1 Target:</strong> $2.5M in liquidation volume, $125K protocol revenue</li>
+                    <li><strong>Year 2 Target:</strong> $25M in liquidation volume, $1.25M protocol revenue</li>
+                    <li><strong>Year 3 Target:</strong> $100M+ in liquidation volume, $5M+ protocol revenue</li>
                   </ul>
+                  <p className="text-sm italic mt-3">
+                    <em>These figures are illustrative projections and do not constitute financial forecasts or guarantees.</em>
+                  </p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -377,7 +383,7 @@ export default function Whitepaper() {
                       <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
                       <div>
                         <div className="font-bold text-yellow-500 mb-2">Audit Status</div>
-                        <p className="text-sm">Smart contracts are currently deployed on testnets. Mainnet deployment will follow comprehensive audits by OpenZeppelin and Trail of Bits (Q1 2026).</p>
+                        <p className="text-sm">The protocol is currently deployed on testnets for research and validation. Formal third-party security audits are planned prior to any mainnet deployment.</p>
                       </div>
                     </div>
                   </div>
@@ -427,10 +433,10 @@ export default function Whitepaper() {
                 </CardHeader>
                 <CardContent className="text-muted-foreground space-y-4 leading-relaxed">
                   <p className="text-lg">
-                    zkLiquidate represents a paradigm shift in DeFi liquidation infrastructure, combining zero-knowledge cryptography, intent-based execution, and Polygon AggLayer's unified liquidity to solve the fundamental challenges plaguing cross-chain liquidations.
+                    zkLiquidate represents an innovative approach to DeFi liquidation infrastructure, combining zero-knowledge cryptography, intent-based execution, and Polygon AggLayer's unified liquidity to address fundamental challenges in cross-chain liquidations.
                   </p>
                   <p>
-                    With <strong className="text-foreground">99.8% success rates</strong>, <strong className="text-primary">4.2-second verifications</strong>, and <strong className="text-accent">$0.03 proof costs</strong>, zkLiquidate offers institutional-grade performance at a fraction of traditional costs. Our first-mover advantage in ZK-verified cross-chain liquidations, combined with native Polygon ecosystem integration, positions us to capture significant market share in the rapidly growing $50B+ DeFi lending market.
+                    In testnet simulations, zkLiquidate demonstrates <strong className="text-foreground">99.8% success rates</strong>, <strong className="text-primary">~4.2-second verifications</strong>, and <strong className="text-accent">~$0.03 estimated proof costs</strong>, validating the technical feasibility of institutional-grade ZK-verified liquidations. Our first-mover approach in ZK-verified cross-chain liquidations, combined with native Polygon ecosystem integration, positions the protocol to serve the growing DeFi lending market.
                   </p>
                   <p>
                     As we progress through our roadmap—from testnet validation to mainnet launch and multi-chain expansion—zkLiquidate will establish itself as the essential infrastructure layer for secure, efficient, and profitable liquidations across the entire blockchain ecosystem.

@@ -23,7 +23,7 @@ const features = [
   {
     icon: Zap,
     title: "Instant Finality",
-    desc: "5-second verification time with $0.03 cost per proof.",
+    desc: "In testnet simulations: ~5-second verification time with ~$0.03 estimated cost per proof.",
     color: "text-yellow-400"
   },
   {

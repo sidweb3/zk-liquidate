@@ -89,10 +89,10 @@ export function HeroSection({ onConnectWallet }: HeroSectionProps) {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.5 }}
         >
-          Unlock $50B+ in cross-chain lending with ZK-verified liquidation intents. 
-          Eliminate oracle desync, front-running, and execution failures.
+          Targeting the cross-chain lending opportunity with ZK-verified liquidation intents. 
+          Designed to eliminate oracle desync, front-running, and execution failures.
         </motion.p>
-        
+
         <motion.div 
           className="flex flex-col sm:flex-row gap-4 justify-center"
           initial={{ opacity: 0, y: 20 }}

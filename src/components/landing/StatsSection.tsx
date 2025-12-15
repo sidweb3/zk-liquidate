@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
 
 const stats = [
-  { label: "Total Value Secured", value: "$124M+" },
-  { label: "Liquidations Executed", value: "14.2K" },
-  { label: "Avg Verification Time", value: "4.2s" },
-  { label: "Proof Cost", value: "$0.03" }
+  { label: "Testnet Simulations", value: "1,200+" },
+  { label: "Avg Verification Time", value: "~4.2s" },
+  { label: "Est. Proof Cost", value: "~$0.03" },
+  { label: "Success Rate", value: "99.8%" }
 ];
 
 export function StatsSection() {
