@@ -14,7 +14,7 @@ import { AnalyticsChart } from "@/components/dashboard/AnalyticsChart";
 import { useWalletConnection } from "@/hooks/useContract";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Activity, Wallet, ChevronRight } from "lucide-react";
+import { Activity, Wallet, ChevronRight, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Dashboard() {
@@ -107,15 +107,46 @@ export default function Dashboard() {
             transition={{ duration: 0.5 }}
           >
             <Card className="border-yellow-500/20 bg-gradient-to-r from-card to-yellow-500/5">
-              <div className="p-6 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+              <div className="p-6">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
                     <Wallet className="w-5 h-5 text-yellow-500" />
                   </div>
-                  <div>
-                    <div className="font-medium">No Wallet Connected</div>
-                    <div className="text-sm text-muted-foreground">Connect your wallet to interact with the protocol</div>
+                  <div className="flex-1">
+                    <div className="font-medium mb-1">No Wallet Connected</div>
+                    <div className="text-sm text-muted-foreground mb-3">Connect your wallet to interact with the protocol</div>
+                    
+                    {/* Quick Setup Guide */}
+                    <div className="bg-muted/30 rounded-lg p-3 space-y-2 text-sm">
+                      <p className="font-medium">Quick Setup Guide:</p>
+                      <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                        <li>Install MetaMask or another Web3 wallet</li>
+                        <li>Add Polygon Amoy testnet to your wallet</li>
+                        <li>Get testnet tokens from <a href="https://faucet.polygon.technology/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Polygon Faucet</a></li>
+                        <li>Click "Connect Wallet" in the header</li>
+                      </ol>
+                    </div>
                   </div>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Network Warning for Wrong Chain */}
+        {isConnected && chainId !== 80002 && chainId !== 1442 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Card className="border-orange-500/20 bg-gradient-to-r from-card to-orange-500/5">
+              <div className="p-4 flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-orange-500 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-medium text-orange-500">Wrong Network</p>
+                  <p className="text-sm text-muted-foreground">
+                    Please switch to Polygon Amoy (80002) or Polygon zkEVM (1442) to use the protocol
+                  </p>
                 </div>
               </div>
             </Card>

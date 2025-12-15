@@ -33,6 +33,13 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
       const formData = new FormData(form);
       
       if (useBlockchain) {
+        // Pre-flight checks
+        if (!window.ethereum) {
+          toast.error("Please install MetaMask or another Web3 wallet");
+          setIsSubmitting(false);
+          return;
+        }
+
         await switchToNetwork(CONTRACTS.INTENT_REGISTRY.chainId);
         
         const contract = await getIntentRegistryContract();
@@ -49,6 +56,8 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
           deadline,
           bondAmount: bondAmount.toString()
         });
+        
+        toast.info("⚠️ Make sure you have at least 10 POL in your wallet for the bond!");
         
         const tx = await contract.submitIntent(
           targetUser,
@@ -91,7 +100,17 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
       form.reset();
     } catch (error: any) {
       console.error("Failed to submit intent:", error);
-      toast.error(error.message || "Failed to submit intent");
+      
+      // Enhanced error messages
+      if (error.code === "INSUFFICIENT_FUNDS") {
+        toast.error("Insufficient funds! You need at least 10 POL + gas fees in your wallet.");
+      } else if (error.code === "ACTION_REJECTED") {
+        toast.error("Transaction rejected by user");
+      } else if (error.message?.includes("user rejected")) {
+        toast.error("Transaction rejected by user");
+      } else {
+        toast.error(error.message || "Failed to submit intent. Check console for details.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -241,6 +260,24 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
                     : "Create a simulated liquidation intent for testing."}
                 </DialogDescription>
               </DialogHeader>
+              
+              {/* Usage Guide Alert */}
+              {useBlockchain && (
+                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
+                    <div className="space-y-1 text-sm">
+                      <p className="font-semibold text-yellow-500">Before submitting:</p>
+                      <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                        <li>Ensure you're on <strong>Polygon Amoy</strong> network</li>
+                        <li>Have at least <strong>10 POL + gas fees</strong> in your wallet</li>
+                        <li>Get testnet tokens from <a href="https://faucet.polygon.technology/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Polygon Faucet</a></li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <form onSubmit={handleSubmitIntent} className="grid gap-6 py-4">
                 <div className="grid gap-3">
                   <Label htmlFor="address" className="text-sm font-medium">Target User Address</Label>
@@ -287,6 +324,9 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
                     readOnly 
                     className="bg-muted border-input h-11" 
                   />
+                  <p className="text-xs text-muted-foreground">
+                    This amount will be locked as collateral and returned after execution
+                  </p>
                 </div>
                 <DialogFooter>
                   <Button 

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { Wallet } from "lucide-react";
+import { Wallet, BookOpen } from "lucide-react";
 
 interface HeroSectionProps {
   onConnectWallet: () => void;
@@ -38,10 +38,29 @@ export function HeroSection({ onConnectWallet }: HeroSectionProps) {
             size="lg" 
             variant="outline" 
             className="border-primary/20 hover:bg-primary/10 text-lg px-8"
+            onClick={() => window.open("https://github.com/yourusername/zk-cross-liquidate", "_blank")}
           >
+            <BookOpen className="mr-2 w-5 h-5" />
             Read Whitepaper
           </Button>
         </div>
+        
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8, duration: 0.6 }}
+          className="mt-12 max-w-md mx-auto"
+        >
+          <div className="bg-card/50 backdrop-blur-sm border border-border rounded-lg p-4 text-left">
+            <p className="text-sm font-medium mb-2">🚀 Quick Start:</p>
+            <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+              <li>Connect your MetaMask wallet</li>
+              <li>Switch to Polygon Amoy testnet</li>
+              <li>Get free testnet tokens from faucet</li>
+              <li>Start liquidating with ZK proofs!</li>
+            </ol>
+          </div>
+        </motion.div>
       </motion.div>
     </section>
   );
