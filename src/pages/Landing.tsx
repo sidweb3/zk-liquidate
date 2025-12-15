@@ -24,11 +24,13 @@ export default function Landing() {
         <motion.div 
           className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]"
           animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3],
+            scale: [1, 1.15, 1],
+            opacity: [0.2, 0.4, 0.2],
+            x: [0, 50, 0],
+            y: [0, 30, 0]
           }}
           transition={{
-            duration: 8,
+            duration: 20,
             repeat: Infinity,
             ease: "easeInOut"
           }}
@@ -36,27 +38,30 @@ export default function Landing() {
         <motion.div 
           className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[120px]"
           animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.3, 0.6, 0.3],
+            scale: [1, 1.2, 1],
+            opacity: [0.2, 0.45, 0.2],
+            x: [0, -40, 0],
+            y: [0, -50, 0]
           }}
           transition={{
-            duration: 10,
+            duration: 25,
             repeat: Infinity,
             ease: "easeInOut",
-            delay: 1
+            delay: 2
           }}
         />
         <motion.div 
           className="absolute top-[40%] left-[40%] w-[20%] h-[20%] bg-accent/10 rounded-full blur-[100px]"
           animate={{
-            scale: [1, 1.4, 1],
-            opacity: [0.2, 0.5, 0.2],
+            scale: [1, 1.3, 1],
+            opacity: [0.15, 0.35, 0.15],
+            rotate: [0, 180, 360]
           }}
           transition={{
-            duration: 12,
+            duration: 30,
             repeat: Infinity,
             ease: "easeInOut",
-            delay: 2
+            delay: 5
           }}
         />
       </div>
@@ -66,11 +71,12 @@ export default function Landing() {
       <FeaturesGrid />
       <StatsSection />
 
-      {/* Smart Contracts Section with Neon Effects */}
+      {/* Smart Contracts Section */}
       <section className="container mx-auto px-6 py-20 border-t border-border">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
@@ -86,10 +92,11 @@ export default function Landing() {
 
         <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="float-animation"
+            viewport={{ once: true }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+            whileHover={{ y: -8 }}
           >
             <Card className="p-6 bg-card border-primary/30 hover:border-primary/50 hover:scale-105 transition-all group">
               <div className="flex items-center gap-3 mb-4">
@@ -127,11 +134,11 @@ export default function Landing() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="float-animation"
-            style={{ animationDelay: "1s" }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            whileHover={{ y: -8 }}
           >
             <Card className="p-6 bg-card border-secondary/30 hover:border-secondary/50 hover:scale-105 transition-all group">
               <div className="flex items-center gap-3 mb-4">
@@ -169,11 +176,11 @@ export default function Landing() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="float-animation"
-            style={{ animationDelay: "2s" }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            whileHover={{ y: -8 }}
           >
             <Card className="p-6 bg-card border-accent/30 hover:border-accent/50 hover:scale-105 transition-all group">
               <div className="flex items-center gap-3 mb-4">
@@ -217,6 +224,7 @@ export default function Landing() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
@@ -267,14 +275,20 @@ export default function Landing() {
             ].map((item, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className={`p-8 rounded-2xl bg-card border ${item.glowClass.replace('neon-border-', 'border-').replace('primary', 'primary/30').replace('secondary', 'secondary/30').replace('accent', 'accent/30')} hover:border-primary/50 hover:scale-105 transition-all group`}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.08, duration: 0.5 }}
+              whileHover={{ y: -5, scale: 1.02 }}
+              className={`p-8 rounded-2xl bg-card border ${item.glowClass.replace('neon-border-', 'border-').replace('primary', 'primary/30').replace('secondary', 'secondary/30').replace('accent', 'accent/30')} hover:border-primary/50 transition-all duration-300 group`}
             >
-              <div className="mb-4 group-hover:scale-110 transition-transform">
+              <motion.div 
+                className="mb-4"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+              >
                 {item.icon}
-              </div>
+              </motion.div>
               <h3 className="text-xl font-bold mb-3">{item.title}</h3>
               <p className="text-muted-foreground leading-relaxed">{item.desc}</p>
             </motion.div>
@@ -287,6 +301,7 @@ export default function Landing() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
@@ -299,9 +314,10 @@ export default function Landing() {
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Current Phase */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
             className="relative pl-8 border-l-4 border-primary"
           >
             <div className="absolute -left-3 top-0 w-5 h-5 rounded-full bg-primary neon-glow-primary" />
@@ -334,9 +350,10 @@ export default function Landing() {
 
           {/* Phase 2 */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.15, ease: "easeOut" }}
             className="relative pl-8 border-l-4 border-secondary/50"
           >
             <div className="absolute -left-3 top-0 w-5 h-5 rounded-full bg-secondary/50" />
@@ -369,9 +386,10 @@ export default function Landing() {
 
           {/* Phase 3 */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
             className="relative pl-8 border-l-4 border-accent/50"
           >
             <div className="absolute -left-3 top-0 w-5 h-5 rounded-full bg-accent/50" />

@@ -52,12 +52,28 @@ const features = [
   }
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
+};
+
 export function FeaturesGrid() {
   return (
     <section className="container mx-auto px-6 py-20">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
         transition={{ duration: 0.6 }}
         className="text-center mb-12"
       >
@@ -67,23 +83,33 @@ export function FeaturesGrid() {
         </p>
       </motion.div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <motion.div 
+        className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-50px" }}
+      >
         {features.map((feature, i) => (
           <motion.div
             key={i}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-colors group"
+            variants={itemVariants}
+            transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+            whileHover={{ y: -5 }}
+            className="p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 group"
           >
-            <div className="mb-4 p-3 rounded-xl bg-background w-fit group-hover:scale-110 transition-transform">
+            <motion.div 
+              className="mb-4 p-3 rounded-xl bg-background w-fit"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            >
               <feature.icon className={`w-8 h-8 ${feature.color}`} />
-            </div>
+            </motion.div>
             <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
             <p className="text-muted-foreground">{feature.desc}</p>
           </motion.div>
         ))}
-      </div>
+      </motion.div>
     </section>
   );
 }
