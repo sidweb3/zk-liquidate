@@ -19,11 +19,46 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden relative">
-      {/* Background Gradients */}
+      {/* Enhanced Background Gradients with Animation */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[120px]" />
-        <div className="absolute top-[40%] left-[40%] w-[20%] h-[20%] bg-accent/10 rounded-full blur-[100px]" />
+        <motion.div 
+          className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div 
+          className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[120px]"
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.3, 0.6, 0.3],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1
+          }}
+        />
+        <motion.div 
+          className="absolute top-[40%] left-[40%] w-[20%] h-[20%] bg-accent/10 rounded-full blur-[100px]"
+          animate={{
+            scale: [1, 1.4, 1],
+            opacity: [0.2, 0.5, 0.2],
+          }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2
+          }}
+        />
       </div>
 
       <LandingNavbar onConnectWallet={handleConnectWallet} />
@@ -31,7 +66,7 @@ export default function Landing() {
       <FeaturesGrid />
       <StatsSection />
 
-      {/* Smart Contracts Section */}
+      {/* Smart Contracts Section with Neon Effects */}
       <section className="container mx-auto px-6 py-20 border-t border-border">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -39,7 +74,7 @@ export default function Landing() {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4 neon-glow-primary">
             <Code className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-primary">Deployed & Verified</span>
           </div>
@@ -54,10 +89,11 @@ export default function Landing() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
+            className="float-animation"
           >
-            <Card className="p-6 bg-card border-border hover:border-primary/50 transition-all group">
+            <Card className="p-6 bg-card neon-border-primary hover:scale-105 transition-all group">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform neon-glow-primary">
                   <Link2 className="w-6 h-6 text-primary" />
                 </div>
                 <div>
@@ -80,7 +116,7 @@ export default function Landing() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full mt-2"
+                  className="w-full mt-2 neon-border-primary"
                   onClick={() => window.open("https://amoy.polygonscan.com/address/0x831F6F30cc0Aa68a9541B79c2289BF748DEC4a2a", "_blank")}
                 >
                   <ExternalLink className="w-3 h-3 mr-2" />
@@ -94,10 +130,12 @@ export default function Landing() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
+            className="float-animation"
+            style={{ animationDelay: "1s" }}
           >
-            <Card className="p-6 bg-card border-border hover:border-primary/50 transition-all group">
+            <Card className="p-6 bg-card neon-border-secondary hover:scale-105 transition-all group">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center group-hover:scale-110 transition-transform neon-glow-secondary">
                   <Shield className="w-6 h-6 text-secondary" />
                 </div>
                 <div>
@@ -120,7 +158,7 @@ export default function Landing() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full mt-2"
+                  className="w-full mt-2 neon-border-secondary"
                   onClick={() => window.open("https://testnet-zkevm.polygonscan.com/address/0x8C935B982416673cF9633DdCC4E9Dc4ec2846Ab2", "_blank")}
                 >
                   <ExternalLink className="w-3 h-3 mr-2" />
@@ -134,10 +172,12 @@ export default function Landing() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
+            className="float-animation"
+            style={{ animationDelay: "2s" }}
           >
-            <Card className="p-6 bg-card border-border hover:border-primary/50 transition-all group">
+            <Card className="p-6 bg-card neon-border-accent hover:scale-105 transition-all group">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center group-hover:scale-110 transition-transform neon-glow-accent">
                   <Activity className="w-6 h-6 text-accent" />
                 </div>
                 <div>
@@ -160,7 +200,7 @@ export default function Landing() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full mt-2"
+                  className="w-full mt-2 neon-border-accent"
                   onClick={() => window.open("https://amoy.polygonscan.com/address/0x6cFe23FA3ed2D3df4ae2a4A2686514Fa8E634A9B", "_blank")}
                 >
                   <ExternalLink className="w-3 h-3 mr-2" />
@@ -191,32 +231,38 @@ export default function Landing() {
             {
               icon: <CheckCircle2 className="w-10 h-10 text-primary" />,
               title: "First-Mover Advantage",
-              desc: "Only ZK-verified cross-chain liquidation protocol on Polygon AggLayer with institutional-grade security."
+              desc: "Only ZK-verified cross-chain liquidation protocol on Polygon AggLayer with institutional-grade security.",
+              glowClass: "neon-border-primary"
             },
             {
               icon: <TrendingUp className="w-10 h-10 text-secondary" />,
               title: "Clear Revenue Streams",
-              desc: "Earn from liquidation bonuses (5-10%), verification fees ($0.03/proof), and protocol integration fees."
+              desc: "Earn from liquidation bonuses (5-10%), verification fees ($0.03/proof), and protocol integration fees.",
+              glowClass: "neon-border-secondary"
             },
             {
               icon: <Users className="w-10 h-10 text-accent" />,
               title: "Institutional Appeal",
-              desc: "Compliance-ready with audit trails, insurance coverage, and regulatory-friendly architecture."
+              desc: "Compliance-ready with audit trails, insurance coverage, and regulatory-friendly architecture.",
+              glowClass: "neon-border-accent"
             },
             {
               icon: <Globe className="w-10 h-10 text-primary" />,
               title: "Polygon Stack Advantage",
-              desc: "Native AggLayer integration, zkEVM compatibility, and CDK chain support for seamless cross-chain operations."
+              desc: "Native AggLayer integration, zkEVM compatibility, and CDK chain support for seamless cross-chain operations.",
+              glowClass: "neon-border-primary"
             },
             {
               icon: <Shield className="w-10 h-10 text-secondary" />,
               title: "Battle-Tested Security",
-              desc: "Plonky2 ZK proofs, time-locked intents, and multi-signature verification ensure maximum security."
+              desc: "Plonky2 ZK proofs, time-locked intents, and multi-signature verification ensure maximum security.",
+              glowClass: "neon-border-secondary"
             },
             {
               icon: <Activity className="w-10 h-10 text-accent" />,
               title: "AI-Enhanced Oracle",
-              desc: "Off-chain risk oracle with AI integration provides real-time market data and risk assessment."
+              desc: "Off-chain risk oracle with AI integration provides real-time market data and risk assessment.",
+              glowClass: "neon-border-accent"
             }
           ].map((item, i) => (
             <motion.div
@@ -224,7 +270,7 @@ export default function Landing() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
-              className="p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all group"
+              className={`p-8 rounded-2xl bg-card ${item.glowClass} hover:scale-105 transition-all group`}
             >
               <div className="mb-4 group-hover:scale-110 transition-transform">
                 {item.icon}
@@ -258,8 +304,8 @@ export default function Landing() {
             transition={{ duration: 0.6 }}
             className="relative pl-8 border-l-4 border-primary"
           >
-            <div className="absolute -left-3 top-0 w-5 h-5 rounded-full bg-primary animate-pulse" />
-            <div className="bg-card border border-primary/50 rounded-xl p-6">
+            <div className="absolute -left-3 top-0 w-5 h-5 rounded-full bg-primary neon-glow-primary" />
+            <div className="bg-card neon-border-primary rounded-xl p-6">
               <div className="flex items-center gap-3 mb-3">
                 <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-bold">CURRENT PHASE</span>
                 <span className="text-muted-foreground">December 2025</span>
@@ -294,7 +340,7 @@ export default function Landing() {
             className="relative pl-8 border-l-4 border-secondary/50"
           >
             <div className="absolute -left-3 top-0 w-5 h-5 rounded-full bg-secondary/50" />
-            <div className="bg-card border border-border rounded-xl p-6">
+            <div className="bg-card border border-border rounded-xl p-6 hover:border-secondary/50 transition-all">
               <div className="flex items-center gap-3 mb-3">
                 <span className="px-3 py-1 rounded-full bg-secondary/20 text-secondary text-sm font-bold">UPCOMING</span>
                 <span className="text-muted-foreground">Q1 2026</span>
@@ -329,7 +375,7 @@ export default function Landing() {
             className="relative pl-8 border-l-4 border-accent/50"
           >
             <div className="absolute -left-3 top-0 w-5 h-5 rounded-full bg-accent/50" />
-            <div className="bg-card border border-border rounded-xl p-6">
+            <div className="bg-card border border-border rounded-xl p-6 hover:border-accent/50 transition-all">
               <div className="flex items-center gap-3 mb-3">
                 <span className="px-3 py-1 rounded-full bg-accent/20 text-accent text-sm font-bold">FUTURE</span>
                 <span className="text-muted-foreground">Q2-Q3 2026</span>
