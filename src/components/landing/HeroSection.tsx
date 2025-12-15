@@ -115,7 +115,7 @@ export function HeroSection({ onConnectWallet }: HeroSectionProps) {
               size="lg" 
               variant="outline" 
               className="border-primary/20 hover:bg-primary/10 text-lg px-8"
-              onClick={() => window.open("https://github.com/yourusername/zk-cross-liquidate", "_blank")}
+              onClick={() => window.location.href = "/whitepaper"}
             >
               <BookOpen className="mr-2 w-5 h-5" />
               Read Whitepaper
