@@ -1,12 +1,56 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Wallet, BookOpen } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface HeroSectionProps {
   onConnectWallet: () => void;
 }
 
 export function HeroSection({ onConnectWallet }: HeroSectionProps) {
+  const phrases = [
+    "Cross-Chain Liquidations",
+    "ZK-Verified Security",
+    "AI-Powered Risk Scoring",
+    "Automated Execution",
+    "Institutional Grade DeFi"
+  ];
+  
+  const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
+  const [displayedText, setDisplayedText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [typingSpeed, setTypingSpeed] = useState(100);
+
+  useEffect(() => {
+    const currentPhrase = phrases[currentPhraseIndex];
+    
+    const handleTyping = () => {
+      if (!isDeleting) {
+        // Typing forward
+        if (displayedText.length < currentPhrase.length) {
+          setDisplayedText(currentPhrase.substring(0, displayedText.length + 1));
+          setTypingSpeed(100);
+        } else {
+          // Pause at end before deleting
+          setTimeout(() => setIsDeleting(true), 2000);
+        }
+      } else {
+        // Deleting
+        if (displayedText.length > 0) {
+          setDisplayedText(currentPhrase.substring(0, displayedText.length - 1));
+          setTypingSpeed(50);
+        } else {
+          // Move to next phrase
+          setIsDeleting(false);
+          setCurrentPhraseIndex((prev) => (prev + 1) % phrases.length);
+        }
+      }
+    };
+
+    const timer = setTimeout(handleTyping, typingSpeed);
+    return () => clearTimeout(timer);
+  }, [displayedText, isDeleting, currentPhraseIndex, typingSpeed, phrases]);
+
   return (
     <section className="container mx-auto px-6 py-20 text-center relative">
       <motion.div
@@ -24,13 +68,19 @@ export function HeroSection({ onConnectWallet }: HeroSectionProps) {
         </motion.div>
         
         <motion.h1 
-          className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400"
+          className="text-5xl md:text-7xl font-bold tracking-tight mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3 }}
         >
-          Institutional Grade <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Cross-Chain Liquidations</span>
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">
+            Institutional Grade
+          </span>
+          <br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent inline-flex items-center min-h-[1.2em]">
+            {displayedText}
+            <span className="inline-block w-0.5 h-[0.8em] bg-primary ml-1 animate-pulse" />
+          </span>
         </motion.h1>
         
         <motion.p 
