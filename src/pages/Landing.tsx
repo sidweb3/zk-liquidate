@@ -91,9 +91,9 @@ export default function Landing() {
             transition={{ delay: 0.1 }}
             className="float-animation"
           >
-            <Card className="p-6 bg-card neon-border-primary hover:scale-105 transition-all group">
+            <Card className="p-6 bg-card border-primary/30 hover:border-primary/50 hover:scale-105 transition-all group">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform neon-glow-primary">
+                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Link2 className="w-6 h-6 text-primary" />
                 </div>
                 <div>
@@ -116,7 +116,7 @@ export default function Landing() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full mt-2 neon-border-primary"
+                  className="w-full mt-2 border-primary/30 hover:border-primary/50"
                   onClick={() => window.open("https://amoy.polygonscan.com/address/0x831F6F30cc0Aa68a9541B79c2289BF748DEC4a2a", "_blank")}
                 >
                   <ExternalLink className="w-3 h-3 mr-2" />
@@ -133,9 +133,9 @@ export default function Landing() {
             className="float-animation"
             style={{ animationDelay: "1s" }}
           >
-            <Card className="p-6 bg-card neon-border-secondary hover:scale-105 transition-all group">
+            <Card className="p-6 bg-card border-secondary/30 hover:border-secondary/50 hover:scale-105 transition-all group">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center group-hover:scale-110 transition-transform neon-glow-secondary">
+                <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Shield className="w-6 h-6 text-secondary" />
                 </div>
                 <div>
@@ -158,7 +158,7 @@ export default function Landing() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full mt-2 neon-border-secondary"
+                  className="w-full mt-2 border-secondary/30 hover:border-secondary/50"
                   onClick={() => window.open("https://testnet-zkevm.polygonscan.com/address/0x8C935B982416673cF9633DdCC4E9Dc4ec2846Ab2", "_blank")}
                 >
                   <ExternalLink className="w-3 h-3 mr-2" />
@@ -175,9 +175,9 @@ export default function Landing() {
             className="float-animation"
             style={{ animationDelay: "2s" }}
           >
-            <Card className="p-6 bg-card neon-border-accent hover:scale-105 transition-all group">
+            <Card className="p-6 bg-card border-accent/30 hover:border-accent/50 hover:scale-105 transition-all group">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center group-hover:scale-110 transition-transform neon-glow-accent">
+                <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Activity className="w-6 h-6 text-accent" />
                 </div>
                 <div>
@@ -200,7 +200,7 @@ export default function Landing() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full mt-2 neon-border-accent"
+                  className="w-full mt-2 border-accent/30 hover:border-accent/50"
                   onClick={() => window.open("https://amoy.polygonscan.com/address/0x6cFe23FA3ed2D3df4ae2a4A2686514Fa8E634A9B", "_blank")}
                 >
                   <ExternalLink className="w-3 h-3 mr-2" />
@@ -264,13 +264,13 @@ export default function Landing() {
               desc: "Off-chain risk oracle with AI integration provides real-time market data and risk assessment.",
               glowClass: "neon-border-accent"
             }
-          ].map((item, i) => (
+            ].map((item, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
-              className={`p-8 rounded-2xl bg-card ${item.glowClass} hover:scale-105 transition-all group`}
+              className={`p-8 rounded-2xl bg-card border ${item.glowClass.replace('neon-border-', 'border-').replace('primary', 'primary/30').replace('secondary', 'secondary/30').replace('accent', 'accent/30')} hover:border-primary/50 hover:scale-105 transition-all group`}
             >
               <div className="mb-4 group-hover:scale-110 transition-transform">
                 {item.icon}
