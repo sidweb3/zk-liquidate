@@ -7,10 +7,10 @@ import { ethers } from "hardhat";
 async function main() {
   console.log("🧪 Testing zkLiquidate Protocol Flow...\n");
 
-  // Replace with your deployed contract addresses
-  const INTENT_REGISTRY_ADDRESS = "YOUR_INTENT_REGISTRY_ADDRESS";
-  const ZK_VERIFIER_ADDRESS = "YOUR_ZK_VERIFIER_ADDRESS";
-  const LIQUIDATION_EXECUTOR_ADDRESS = "YOUR_LIQUIDATION_EXECUTOR_ADDRESS";
+  // Deployed contract addresses on testnets
+  const INTENT_REGISTRY_ADDRESS = "0x831F6F30cc0Aa68a9541B79c2289BF748DEC4a2a"; // Polygon Amoy
+  const ZK_VERIFIER_ADDRESS = "0x8C935B982416673cF9633DdCC4E9Dc4ec2846Ab2"; // Polygon zkEVM Testnet
+  const LIQUIDATION_EXECUTOR_ADDRESS = "0x6cFe23FA3ed2D3df4ae2a4A2686514Fa8E634A9B"; // Polygon Amoy
 
   const [deployer] = await ethers.getSigners();
   console.log("Testing with account:", deployer.address);

@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 import { AlertTriangle, CheckCircle2, Clock, Zap, Link2, Database } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { getIntentRegistryContract, getZKVerifierContract, getLiquidationExecutorContract, switchToNetwork, CONTRACTS, fetchUserCollateralAssets } from "@/lib/contracts";
-import { parseEther } from "ethers";
+import { getIntentRegistryV2Contract, getZKVerifierContract, getLiquidationExecutorV2Contract, switchToNetwork, CONTRACTS_V2, AAVE_V3_AMOY, fetchUserCollateralAssets } from "@/lib/contracts";
+import { parseEther, parseUnits, solidityPackedKeccak256 } from "ethers";
 import { motion } from "framer-motion";
 
 interface IntentRegistryProps {
@@ -40,27 +40,42 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
           return;
         }
 
-        await switchToNetwork(CONTRACTS.INTENT_REGISTRY.chainId);
-        
-        const contract = await getIntentRegistryContract();
+        await switchToNetwork(CONTRACTS_V2.INTENT_REGISTRY_V2.chainId);
+
+        const contract = await getIntentRegistryV2Contract();
         const targetUser = formData.get("address") as string;
-        const targetHealthFactor = Math.floor(parseFloat(formData.get("hf") as string) * 100);
-        const minPrice = parseEther(formData.get("price") as string);
-        const deadline = Math.floor(Date.now() / 1000) + 3600;
-        const bondAmount = parseEther("10");
-        
-        console.log("Submitting intent with params:", {
+        const targetHealthFactor = parseEther(formData.get("hf") as string);
+        const minPrice = parseUnits(formData.get("price") as string, 6); // USDC has 6 decimals
+        const currentBlock = await contract.runner?.provider?.getBlockNumber() || 0;
+        const deadline = currentBlock + 100; // 100 blocks in future (~3 minutes)
+        const bondAmount = parseEther("0.1"); // Changed to 0.1 MATIC for testnet
+
+        // Generate intent hash
+        const userAddress = await contract.runner?.getAddress();
+        const intentHash = solidityPackedKeccak256(
+          ["address", "address", "uint256", "uint256"],
+          [userAddress, targetUser, targetHealthFactor, deadline]
+        );
+
+        // Target protocol (Aave V3)
+        const targetProtocol = AAVE_V3_AMOY.POOL;
+
+        console.log("Submitting V2 intent with params:", {
+          intentHash,
           targetUser,
-          targetHealthFactor,
+          targetProtocol,
+          targetHealthFactor: targetHealthFactor.toString(),
           minPrice: minPrice.toString(),
           deadline,
           bondAmount: bondAmount.toString()
         });
-        
-        toast.info("⚠️ Make sure you have at least 10 POL in your wallet for the bond!");
-        
+
+        toast.info("⚠️ Make sure you have at least 0.1 MATIC in your wallet for the bond!");
+
         const tx = await contract.submitIntent(
+          intentHash,
           targetUser,
+          targetProtocol,
           targetHealthFactor,
           minPrice,
           deadline,
@@ -103,7 +118,7 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
       
       // Enhanced error messages
       if (error.code === "INSUFFICIENT_FUNDS") {
-        toast.error("Insufficient funds! You need at least 10 POL + gas fees in your wallet.");
+        toast.error("Insufficient funds! You need at least 10 MATIC + gas fees in your wallet.");
       } else if (error.code === "ACTION_REJECTED") {
         toast.error("Transaction rejected by user");
       } else if (error.message?.includes("user rejected")) {
@@ -121,23 +136,23 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
     try {
       if (useBlockchain && intentHash) {
         // Switch to zkEVM network for verification
-        await switchToNetwork(CONTRACTS.ZK_VERIFIER.chainId);
-        
+        await switchToNetwork(CONTRACTS_V2.ZK_VERIFIER.chainId);
+
         const verifierContract = await getZKVerifierContract();
-        
+
         // Generate a mock proof (in production, this would come from a ZK proof generator)
         const mockProof = "0x" + "00".repeat(128); // 128 bytes of mock proof data
-        
+
         toast.info("Submitting ZK proof for verification...");
         const tx = await verifierContract.verifyProof(intentHash, mockProof);
-        
+
         toast.info("Waiting for verification confirmation...");
         await tx.wait();
-        
+
         toast.success("ZK proof verified successfully!");
-        
+
         // Switch back to Amoy network
-        await switchToNetwork(CONTRACTS.INTENT_REGISTRY.chainId);
+        await switchToNetwork(CONTRACTS_V2.INTENT_REGISTRY_V2.chainId);
       } else {
         await onVerifyIntent({ intentId: id });
         toast.success("Intent verification initiated (simulated)");
@@ -154,41 +169,41 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
     setIsExecuting(true);
     try {
       if (useBlockchain && intentHash) {
-        await switchToNetwork(CONTRACTS.LIQUIDATION_EXECUTOR.chainId);
-        
-        const executorContract = await getLiquidationExecutorContract();
-        
+        await switchToNetwork(CONTRACTS_V2.LIQUIDATION_EXECUTOR_V2.chainId);
+
+        const executorContract = await getLiquidationExecutorV2Contract();
+
         // Fetch the intent details to get target user address
-        const registryContract = await getIntentRegistryContract();
+        const registryContract = await getIntentRegistryV2Contract();
         const intentData = await registryContract.getIntent(intentHash);
         const targetUserAddress = intentData.targetUser;
-        
+
         toast.info("Fetching collateral assets from target user...");
-        
+
         // Fetch real collateral assets from the target user
         const { assets, amounts } = await fetchUserCollateralAssets(targetUserAddress);
-        
+
         console.log("Liquidating assets:", {
           intentHash,
           targetUser: targetUserAddress,
           assets,
           amounts: amounts.map(a => a.toString()),
         });
-        
+
         toast.info(`Executing liquidation for ${assets.length} asset(s)...`);
         const tx = await executorContract.executeLiquidation(
           intentHash,
           assets,
           amounts
         );
-        
+
         toast.info("Waiting for execution confirmation...");
         const receipt = await tx.wait();
-        
+
         toast.success(`Liquidation executed successfully! ${assets.length} asset(s) liquidated.`);
-        
+
         // Switch back to Amoy network
-        await switchToNetwork(CONTRACTS.INTENT_REGISTRY.chainId);
+        await switchToNetwork(CONTRACTS_V2.INTENT_REGISTRY_V2.chainId);
       } else {
         await onExecuteIntent({ intentId: id });
         toast.success("Liquidation executed successfully (simulated)");
@@ -256,7 +271,7 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
                 <DialogTitle className="text-2xl">Submit Liquidation Intent</DialogTitle>
                 <DialogDescription>
                   {useBlockchain 
-                    ? "Create a new liquidation intent on-chain. Requires 10 POL bond."
+                    ? "Create a new liquidation intent on-chain. Requires 10 MATIC bond."
                     : "Create a simulated liquidation intent for testing."}
                 </DialogDescription>
               </DialogHeader>
@@ -270,7 +285,7 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
                       <p className="font-semibold text-yellow-500">Before submitting:</p>
                       <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                         <li>Ensure you're on <strong>Polygon Amoy</strong> network</li>
-                        <li>Have at least <strong>10 POL + gas fees</strong> in your wallet</li>
+                        <li>Have at least <strong>10 MATIC + gas fees</strong> in your wallet</li>
                         <li>Get testnet tokens from <a href="https://faucet.polygon.technology/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Polygon Faucet</a></li>
                       </ul>
                     </div>
@@ -303,7 +318,7 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
                     />
                   </div>
                   <div className="grid gap-3">
-                    <Label htmlFor="price" className="text-sm font-medium">Min Price (POL)</Label>
+                    <Label htmlFor="price" className="text-sm font-medium">Min Price (MATIC)</Label>
                     <Input 
                       id="price" 
                       name="price" 
@@ -315,7 +330,7 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
                   </div>
                 </div>
                 <div className="grid gap-3">
-                  <Label htmlFor="bond" className="text-sm font-medium">Bond Amount (POL)</Label>
+                  <Label htmlFor="bond" className="text-sm font-medium">Bond Amount (MATIC)</Label>
                   <Input 
                     id="bond" 
                     name="bond" 
@@ -374,7 +389,7 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
                       </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      Min Price: ${intent.minPrice} • Bond: {intent.bondAmount} POL
+                      Min Price: ${intent.minPrice} • Bond: {intent.bondAmount} MATIC
                     </div>
                     <div className="flex items-center gap-2 mt-2">
                       <Badge variant="secondary" className="text-[10px] h-5 bg-purple-500/10 text-purple-400 border-purple-500/20">

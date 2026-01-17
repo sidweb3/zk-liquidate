@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whitelist Aave V3 Pool - IntentRegistryV2</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .info-box {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .info-box strong {
+            color: #667eea;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .log {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+        }
+        a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .step {
+            margin: 15px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        .step:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Whitelist Aave V3 Pool</h1>
+        <p class="subtitle">IntentRegistryV2 Protocol Configuration Tool</p>
+
+        <div class="info-box">
+            <strong>Contract:</strong> 0x320A2dC1b4a56D13438578e3aC386ed90Ca21D27<br>
+            <strong>Protocol to Whitelist:</strong> 0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951<br>
+            <strong>Network:</strong> Polygon Amoy Testnet (Chain ID: 80002)
+        </div>
+
+        <div class="info-box" style="background: #fff3cd; border-left-color: #ffc107;">
+            <strong>⚠️ Important:</strong> You must be the contract owner to whitelist protocols.
+        </div>
+
+        <button id="connectBtn" onclick="connectWallet()">Connect MetaMask</button>
+        <button id="checkBtn" onclick="checkStatus()" style="display:none;">Check Whitelist Status</button>
+        <button id="whitelistBtn" onclick="whitelistProtocol()" style="display:none;">Whitelist Aave V3 Pool</button>
+
+        <div id="status"></div>
+        <div id="logs" class="log" style="display:none;"></div>
+    </div>
+
+    <script type="module">
+        import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
+
+        const CONTRACT_ADDRESS = "0x320A2dC1b4a56D13438578e3aC386ed90Ca21D27";
+        const AAVE_POOL = "0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951";
+        const AMOY_CHAIN_ID = 80002;
+
+        const ABI = [
+            "function addProtocol(address protocol) external",
+            "function supportedProtocols(address protocol) external view returns (bool)",
+            "function owner() external view returns (address)"
+        ];
+
+        let provider, signer, contract, userAddress;
+
+        function log(message, type = 'info') {
+            const logsDiv = document.getElementById('logs');
+            logsDiv.style.display = 'block';
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logsDiv.appendChild(entry);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = type;
+            statusDiv.style.display = 'block';
+        }
+
+        window.connectWallet = async function() {
+            try {
+                if (typeof window.ethereum === 'undefined') {
+                    showStatus('❌ MetaMask not detected. Please install MetaMask.', 'error');
+                    return;
+                }
+
+                log('Connecting to MetaMask...');
+                provider = new ethers.BrowserProvider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = await provider.getSigner();
+                userAddress = await signer.getAddress();
+
+                log(`Connected: ${userAddress}`);
+
+                // Check network
+                const network = await provider.getNetwork();
+                log(`Current network: ${network.name} (Chain ID: ${network.chainId})`);
+
+                if (network.chainId !== AMOY_CHAIN_ID) {
+                    showStatus('⚠️ Please switch to Polygon Amoy Testnet', 'warning');
+                    log('Requesting network switch...');
+
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: '0x13882' }],
+                        });
+                    } catch (switchError) {
+                        if (switchError.code === 4902) {
+                            // Network not added
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: '0x13882',
+                                    chainName: 'Polygon Amoy Testnet',
+                                    rpcUrls: ['https://rpc-amoy.polygon.technology'],
+                                    nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
+                                    blockExplorerUrls: ['https://amoy.polygonscan.com/'],
+                                }],
+                            });
+                        } else {
+                            throw switchError;
+                        }
+                    }
+                }
+
+                contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+                log('Contract connected');
+
+                showStatus('✅ Wallet connected successfully!', 'success');
+                document.getElementById('connectBtn').style.display = 'none';
+                document.getElementById('checkBtn').style.display = 'block';
+                document.getElementById('whitelistBtn').style.display = 'block';
+
+                // Auto-check status
+                setTimeout(() => checkStatus(), 500);
+
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+                showStatus(`❌ Connection failed: ${error.message}`, 'error');
+            }
+        }
+
+        window.checkStatus = async function() {
+            try {
+                log('Checking whitelist status...');
+                showStatus('🔍 Checking...', 'info');
+
+                const isWhitelisted = await contract.supportedProtocols(AAVE_POOL);
+                log(`Whitelist status: ${isWhitelisted}`);
+
+                if (isWhitelisted) {
+                    showStatus('✅ Aave V3 Pool is ALREADY whitelisted! You can submit intents.', 'success');
+                    document.getElementById('whitelistBtn').disabled = true;
+                    document.getElementById('whitelistBtn').textContent = 'Already Whitelisted ✓';
+                } else {
+                    showStatus('❌ Aave V3 Pool is NOT whitelisted yet. Click the button below to whitelist.', 'warning');
+
+                    // Check ownership
+                    try {
+                        const owner = await contract.owner();
+                        log(`Contract owner: ${owner}`);
+
+                        if (owner.toLowerCase() !== userAddress.toLowerCase()) {
+                            showStatus(`⚠️ You are not the contract owner. Only ${owner} can whitelist protocols.`, 'error');
+                            document.getElementById('whitelistBtn').disabled = true;
+                        }
+                    } catch (e) {
+                        log(`Could not check ownership: ${e.message}`);
+                    }
+                }
+
+            } catch (error) {
+                log(`Error checking status: ${error.message}`, 'error');
+                showStatus(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        window.whitelistProtocol = async function() {
+            try {
+                log('Starting whitelist transaction...');
+                showStatus('⏳ Preparing transaction...', 'info');
+
+                const btn = document.getElementById('whitelistBtn');
+                btn.disabled = true;
+                btn.textContent = 'Processing...';
+
+                log(`Calling addProtocol(${AAVE_POOL})`);
+                const tx = await contract.addProtocol(AAVE_POOL);
+
+                log(`Transaction sent: ${tx.hash}`);
+                showStatus(`⏳ Transaction sent! Hash: ${tx.hash}`, 'info');
+
+                const link = document.createElement('a');
+                link.href = `https://amoy.polygonscan.com/tx/${tx.hash}`;
+                link.target = '_blank';
+                link.textContent = 'View on PolygonScan';
+                document.getElementById('status').appendChild(document.createElement('br'));
+                document.getElementById('status').appendChild(link);
+
+                log('Waiting for confirmation...');
+                const receipt = await tx.wait();
+
+                log(`Transaction confirmed in block ${receipt.blockNumber}`);
+                showStatus('✅ SUCCESS! Aave V3 Pool has been whitelisted!', 'success');
+
+                btn.textContent = 'Whitelisted Successfully ✓';
+
+                // Verify
+                setTimeout(async () => {
+                    const isWhitelisted = await contract.supportedProtocols(AAVE_POOL);
+                    if (isWhitelisted) {
+                        log('✅ Verification successful! Protocol is whitelisted.');
+                        const successMsg = document.createElement('div');
+                        successMsg.innerHTML = '<br><strong>🎉 You can now submit liquidation intents!</strong>';
+                        document.getElementById('status').appendChild(successMsg);
+                    }
+                }, 2000);
+
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+
+                if (error.message.includes('user rejected')) {
+                    showStatus('❌ Transaction was rejected in MetaMask', 'error');
+                } else if (error.message.includes('insufficient funds')) {
+                    showStatus('❌ Insufficient MATIC for gas fees', 'error');
+                } else {
+                    showStatus(`❌ Error: ${error.message}`, 'error');
+                }
+
+                const btn = document.getElementById('whitelistBtn');
+                btn.disabled = false;
+                btn.textContent = 'Whitelist Aave V3 Pool';
+            }
+        }
+    </script>
+</body>
+</html>

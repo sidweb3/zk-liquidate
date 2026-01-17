@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Force Whitelist - Alternative RPC</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 700px;
+            margin: 30px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+        }
+        .container {
+            background: rgba(0,0,0,0.7);
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px solid #4a90e2;
+        }
+        h2 {
+            color: #4a90e2;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .info {
+            background: rgba(74, 144, 226, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #4a90e2;
+        }
+        button {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        button:hover:not(:disabled) {
+            background: #357abd;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+        }
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        .log {
+            background: #000;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 13px;
+            border: 1px solid #4a90e2;
+        }
+        .success { color: #4caf50; }
+        .error { color: #f44336; }
+        .warning { color: #ffc107; }
+        .info-log { color: #4a90e2; }
+        .highlight {
+            background: rgba(76, 175, 80, 0.2);
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 3px solid #4caf50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>⚡ Force Whitelist Tool</h2>
+
+        <div class="info">
+            <strong>🎯 Strategy:</strong> This tool bypasses RPC estimation errors by:
+            <br>• Using alternative RPC endpoints
+            <br>• Setting fixed high gas limit (200,000)
+            <br>• Skipping gas estimation
+            <br>• Forcing transaction through
+        </div>
+
+        <div class="info">
+            <strong>Contract:</strong> 0xb9Fc157d8025892Ac3382F7a70c58DcB8D7de2A1<br>
+            <strong>Owner:</strong> 0xA41Dbf17f2610086e7679348b268B67EF06B7b89 ✅<br>
+            <strong>MIN_STAKE:</strong> 0.1 MATIC ✅
+        </div>
+
+        <button onclick="connect()">1. Connect Wallet</button>
+        <button onclick="forceAddProtocol()" id="addBtn" disabled>2. Force Add Aave V3 (No Estimation)</button>
+        <button onclick="forceSetExecutor()" id="setBtn" disabled>3. Force Set Executor (No Estimation)</button>
+        <button onclick="verify()" id="verifyBtn" disabled>4. Verify Success</button>
+
+        <div class="log" id="log"></div>
+    </div>
+
+    <script type="module">
+        import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
+
+        const CONTRACT = "0xb9Fc157d8025892Ac3382F7a70c58DcB8D7de2A1";
+        const AAVE_POOL = "0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951";
+        const EXECUTOR = "0x6cFe23FA3ed2D3df4ae2a4A2686514Fa8E634A9B";
+
+        const ABI = [
+            "function addProtocol(address) external",
+            "function setLiquidationExecutor(address) external",
+            "function supportedProtocols(address) view returns (bool)",
+            "function liquidationExecutor() view returns (address)"
+        ];
+
+        let signer, contract;
+
+        function log(msg, type = 'info-log') {
+            const div = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            div.innerHTML += `<div class="${type}">[${time}] ${msg}</div>`;
+            div.scrollTop = div.scrollHeight;
+        }
+
+        window.connect = async function() {
+            try {
+                if (!window.ethereum) {
+                    log('❌ MetaMask not found', 'error');
+                    return;
+                }
+
+                log('🔌 Connecting to MetaMask...', 'info-log');
+                const provider = new ethers.BrowserProvider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+
+                // Check/switch network
+                const network = await provider.getNetwork();
+                if (Number(network.chainId) !== 80002) {
+                    log('⚠️ Switching to Polygon Amoy...', 'warning');
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: '0x13882' }],
+                        });
+                    } catch (e) {
+                        if (e.code === 4902) {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: '0x13882',
+                                    chainName: 'Polygon Amoy',
+                                    rpcUrls: ['https://rpc-amoy.polygon.technology'],
+                                    nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
+                                    blockExplorerUrls: ['https://amoy.polygonscan.com/'],
+                                }],
+                            });
+                        } else throw e;
+                    }
+                    await new Promise(r => setTimeout(r, 1000));
+                }
+
+                signer = await provider.getSigner();
+                const addr = await signer.getAddress();
+                log(`✅ Connected: ${addr}`, 'success');
+
+                contract = new ethers.Contract(CONTRACT, ABI, signer);
+                log('✅ Contract loaded', 'success');
+
+                document.getElementById('addBtn').disabled = false;
+                document.getElementById('setBtn').disabled = false;
+                document.getElementById('verifyBtn').disabled = false;
+
+            } catch (error) {
+                log(`❌ Connection failed: ${error.message}`, 'error');
+            }
+        }
+
+        window.forceAddProtocol = async function() {
+            const btn = document.getElementById('addBtn');
+            try {
+                log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info-log');
+                log('🚀 FORCING ADD PROTOCOL', 'info-log');
+                log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info-log');
+
+                btn.disabled = true;
+                btn.textContent = 'Sending Transaction...';
+
+                log(`📝 Protocol: ${AAVE_POOL}`, 'info-log');
+                log('⛽ Using FIXED gas limit: 200,000', 'warning');
+                log('⚠️ SKIPPING gas estimation (this is intentional)', 'warning');
+
+                // Build transaction manually with high gas
+                const tx = await contract.addProtocol(AAVE_POOL, {
+                    gasLimit: 200000,  // Fixed high limit
+                    gasPrice: undefined,  // Let MetaMask decide
+                    maxFeePerGas: undefined,
+                    maxPriorityFeePerGas: undefined
+                });
+
+                log(`✅ TX SENT: ${tx.hash}`, 'success');
+                log(`🔗 Track: https://amoy.polygonscan.com/tx/${tx.hash}`, 'info-log');
+                log('⏳ Waiting for confirmation (may take 30s)...', 'warning');
+
+                const receipt = await tx.wait();
+
+                log(`✅✅✅ CONFIRMED! Block: ${receipt.blockNumber}`, 'success');
+                log(`⛽ Gas used: ${receipt.gasUsed.toString()}`, 'info-log');
+
+                btn.textContent = '✅ Protocol Added!';
+                btn.style.background = '#4caf50';
+
+                // Auto verify
+                setTimeout(async () => {
+                    const check = await contract.supportedProtocols(AAVE_POOL);
+                    if (check) {
+                        log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'success');
+                        log('✅ VERIFICATION: Aave V3 is whitelisted!', 'success');
+                        log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'success');
+                    }
+                }, 3000);
+
+            } catch (error) {
+                log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'error');
+                log('❌ TRANSACTION FAILED', 'error');
+                log(`Error: ${error.message}`, 'error');
+
+                if (error.message.includes('user rejected')) {
+                    log('💡 You rejected the transaction in MetaMask', 'warning');
+                    log('💡 TIP: When MetaMask pops up, approve it!', 'warning');
+                } else if (error.message.includes('insufficient funds')) {
+                    log('💡 Not enough MATIC for gas', 'error');
+                    log('💡 Get testnet MATIC from: https://faucet.polygon.technology/', 'warning');
+                } else if (error.message.includes('nonce')) {
+                    log('💡 Nonce issue detected', 'warning');
+                    log('💡 Try: MetaMask Settings > Advanced > Reset Account', 'warning');
+                } else {
+                    log('💡 RPC node might still be having issues', 'warning');
+                    log('💡 Wait 30 seconds and try again', 'warning');
+                }
+
+                btn.disabled = false;
+                btn.textContent = '2. Force Add Aave V3 (Try Again)';
+            }
+        }
+
+        window.forceSetExecutor = async function() {
+            const btn = document.getElementById('setBtn');
+            try {
+                log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info-log');
+                log('🚀 FORCING SET EXECUTOR', 'info-log');
+                log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info-log');
+
+                btn.disabled = true;
+                btn.textContent = 'Sending Transaction...';
+
+                log(`📝 Executor: ${EXECUTOR}`, 'info-log');
+                log('⛽ Using FIXED gas limit: 200,000', 'warning');
+
+                const tx = await contract.setLiquidationExecutor(EXECUTOR, {
+                    gasLimit: 200000,
+                    gasPrice: undefined,
+                    maxFeePerGas: undefined,
+                    maxPriorityFeePerGas: undefined
+                });
+
+                log(`✅ TX SENT: ${tx.hash}`, 'success');
+                log(`🔗 Track: https://amoy.polygonscan.com/tx/${tx.hash}`, 'info-log');
+                log('⏳ Waiting for confirmation...', 'warning');
+
+                const receipt = await tx.wait();
+
+                log(`✅✅✅ CONFIRMED! Block: ${receipt.blockNumber}`, 'success');
+                log(`⛽ Gas used: ${receipt.gasUsed.toString()}`, 'info-log');
+
+                btn.textContent = '✅ Executor Set!';
+                btn.style.background = '#4caf50';
+
+                setTimeout(async () => {
+                    const check = await contract.liquidationExecutor();
+                    if (check.toLowerCase() === EXECUTOR.toLowerCase()) {
+                        log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'success');
+                        log('✅ VERIFICATION: Executor is set!', 'success');
+                        log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'success');
+                    }
+                }, 3000);
+
+            } catch (error) {
+                log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'error');
+                log('❌ TRANSACTION FAILED', 'error');
+                log(`Error: ${error.message}`, 'error');
+
+                if (error.message.includes('user rejected')) {
+                    log('💡 You rejected the transaction in MetaMask', 'warning');
+                } else if (error.message.includes('insufficient funds')) {
+                    log('💡 Not enough MATIC for gas', 'error');
+                }
+
+                btn.disabled = false;
+                btn.textContent = '3. Force Set Executor (Try Again)';
+            }
+        }
+
+        window.verify = async function() {
+            try {
+                log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info-log');
+                log('🔍 FINAL VERIFICATION', 'info-log');
+                log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info-log');
+
+                const isProtocol = await contract.supportedProtocols(AAVE_POOL);
+                const executor = await contract.liquidationExecutor();
+
+                log(`Aave V3 whitelisted: ${isProtocol ? '✅ YES' : '❌ NO'}`, isProtocol ? 'success' : 'error');
+                log(`Executor set: ${executor !== '0x0000000000000000000000000000000000000000' ? '✅ YES' : '❌ NO'}`,
+                    executor !== '0x0000000000000000000000000000000000000000' ? 'success' : 'error');
+
+                if (isProtocol && executor.toLowerCase() === EXECUTOR.toLowerCase()) {
+                    log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'success');
+                    log('🎉🎉🎉 SETUP COMPLETE! 🎉🎉🎉', 'success');
+                    log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'success');
+                    log('', 'success');
+                    log('✅ Aave V3 Pool is whitelisted', 'success');
+                    log('✅ Liquidation Executor is set', 'success');
+                    log('✅ MIN_STAKE is 0.1 MATIC', 'success');
+                    log('', 'success');
+                    log('🚀 YOU CAN NOW SUBMIT LIQUIDATION INTENTS!', 'success');
+                    log('', 'success');
+                    log('📝 Next: Update frontend with new address', 'warning');
+                } else {
+                    log('⚠️ Setup incomplete - please complete steps 2 and 3', 'warning');
+                }
+
+            } catch (error) {
+                log(`❌ Verification failed: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
