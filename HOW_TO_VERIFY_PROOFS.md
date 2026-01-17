@@ -4,7 +4,7 @@
 
 Your ZKVerifier contract is currently using **simulated verification** for testnet demo purposes. This is perfectly fine for Wave 5 and demonstrates the architecture.
 
-**Contract**: `0x8C935B982416673cF9633DdCC4E9Dc4ec2846Ab2` (Polygon zkEVM)
+**Contract**: `0x8C935B982416673cF9633DdCC4E9Dc4ec2846Ab2` 
 
 ---
 
