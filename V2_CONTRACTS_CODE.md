@@ -747,52 +747,6 @@ contract LiquidationExecutorV2 is ReentrancyGuard, Pausable, Ownable {
 
 ---
 
-## 📋 Deployment Instructions
-
-### Step 1: Deploy IntentRegistryV2
-
-1. Copy the **IntentRegistryV2.sol** code above
-2. Go to https://remix.ethereum.org
-3. Create new file: `IntentRegistryV2.sol`
-4. Paste the code
-5. Compile with:
-   - Compiler: `0.8.20`
-   - Optimization: `Enabled (200 runs)`
-6. Deploy:
-   - Environment: `Injected Provider - MetaMask`
-   - Network: `Polygon Amoy` (Chain ID: 80002)
-   - Click "Deploy"
-7. **Save the deployed address!**
-
-### Step 2: Deploy LiquidationExecutorV2
-
-1. Copy the **LiquidationExecutorV2.sol** code above
-2. Create new file in Remix: `LiquidationExecutorV2.sol`
-3. Paste the code
-4. Compile (same settings)
-5. Deploy with constructor arguments:
-
-```
-_intentRegistry: <Your IntentRegistryV2 address from Step 1>
-_zkVerifier: 0x8C935B982416673cF9633DdCC4E9Dc4ec2846Ab2
-_aavePool: 0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951
-_aaveOracle: 0xC100cD5b25B9B0f10F3D06E42f3deD22A6Dd5db6
-```
-
-6. Click "Deploy"
-7. **Save the deployed address!**
-
-### Step 3: Link Contracts
-
-On IntentRegistryV2 contract:
-1. Call `setLiquidationExecutor(<LiquidationExecutorV2 address>)`
-2. Call `addProtocol(0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951)`
-
-### Done! ✅
-
-Your V2 contracts are deployed and ready to use.
-
----
 
 ## 🔑 Important Addresses
 
@@ -810,16 +764,4 @@ Your V2 contracts are deployed and ready to use.
 - USDC: `0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582`
 - WETH: `0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa`
 
----
 
-## 📚 Additional Documentation
-
-- Detailed deployment guide: `contracts/DEPLOYMENT_V2.md`
-- Judge response: `WAVE_5_JUDGE_RESPONSE.md`
-- Quick summary: `WAVE_5_V2_SUMMARY.md`
-
----
-
-**Total Time**: 15-20 minutes
-**Total Cost**: ~0.2 MATIC
-**Result**: Production-ready V2 contracts! 🚀
