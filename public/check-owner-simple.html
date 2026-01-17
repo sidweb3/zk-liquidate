@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Owner</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #000;
+            color: #0f0;
+        }
+        .box {
+            background: #1a1a1a;
+            padding: 20px;
+            border: 2px solid #0f0;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        button:hover { background: #0c0; }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #000;
+            border: 1px solid #0f0;
+            border-radius: 4px;
+            word-break: break-all;
+        }
+        .success { color: #0f0; }
+        .error { color: #f00; }
+        .warning { color: #ff0; }
+    </style>
+</head>
+<body>
+    <h2>🔍 Owner Check</h2>
+    <div class="box">
+        <strong>Contract:</strong> 0xb9Fc157d8025892Ac3382F7a70c58DcB8D7de2A1<br>
+        <strong>Network:</strong> Polygon Amoy
+    </div>
+
+    <button onclick="checkOwner()">Check Owner</button>
+    <div id="result"></div>
+
+    <script type="module">
+        import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
+
+        const CONTRACT = "0xb9Fc157d8025892Ac3382F7a70c58DcB8D7de2A1";
+
+        window.checkOwner = async function() {
+            const div = document.getElementById('result');
+            div.innerHTML = '<div class="result">Checking...</div>';
+
+            try {
+                if (!window.ethereum) {
+                    div.innerHTML = '<div class="result error">❌ MetaMask not found</div>';
+                    return;
+                }
+
+                const provider = new ethers.BrowserProvider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+
+                const network = await provider.getNetwork();
+                if (Number(network.chainId) !== 80002) {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: '0x13882' }],
+                    });
+                    await new Promise(r => setTimeout(r, 1000));
+                }
+
+                const signer = await provider.getSigner();
+                const userAddr = await signer.getAddress();
+
+                const abi = [
+                    "function owner() external view returns (address)",
+                    "function MIN_STAKE() external view returns (uint256)"
+                ];
+                const contract = new ethers.Contract(CONTRACT, abi, provider);
+
+                let html = '<div class="result">';
+
+                // Try to get owner
+                try {
+                    const owner = await contract.owner();
+                    html += `<strong class="success">✅ Owner() works!</strong><br><br>`;
+                    html += `<strong>Contract Owner:</strong><br>${owner}<br><br>`;
+                    html += `<strong>Your Address:</strong><br>${userAddr}<br><br>`;
+
+                    if (owner.toLowerCase() === userAddr.toLowerCase()) {
+                        html += `<div class="success"><strong>✅ YOU ARE THE OWNER!</strong></div><br>`;
+                        html += `<div class="warning">But transaction still fails? This might be:<br>`;
+                        html += `1. RPC node issue - try again<br>`;
+                        html += `2. Nonce issue - reset MetaMask account<br>`;
+                        html += `3. Gas price too low - increase in MetaMask</div>`;
+                    } else {
+                        html += `<div class="error"><strong>❌ YOU ARE NOT THE OWNER</strong></div><br>`;
+                        html += `<div class="warning">Did you deploy from a different wallet?</div>`;
+                    }
+                } catch (ownerError) {
+                    html += `<div class="error"><strong>❌ owner() FAILED</strong></div><br>`;
+                    html += `Error: ${ownerError.message}<br><br>`;
+                    html += `<div class="warning">This means the contract deployment failed!<br>`;
+                    html += `The contract exists but Ownable is broken.<br><br>`;
+                    html += `<strong>SOLUTION: Redeploy the contract</strong></div>`;
+                }
+
+                // Try to get MIN_STAKE
+                html += '<br><hr style="border-color: #0f0;"><br>';
+                try {
+                    const minStake = await contract.MIN_STAKE();
+                    const minStakeEther = ethers.formatEther(minStake);
+                    html += `<strong class="success">✅ MIN_STAKE works!</strong><br>`;
+                    html += `Value: ${minStakeEther} MATIC`;
+                } catch (stakeError) {
+                    html += `<div class="error">❌ MIN_STAKE failed: ${stakeError.message}</div>`;
+                }
+
+                html += '</div>';
+                div.innerHTML = html;
+
+            } catch (error) {
+                div.innerHTML = `<div class="result error">❌ Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

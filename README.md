@@ -12,7 +12,7 @@
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Live_on_Testnet-success?style=for-the-badge)](https://amoy.polygonscan.com/)
 
-**[Live Demo](https://zk-cross-liquidate.vercel.app)** • **[Documentation](#-documentation)** • **[Whitepaper](#-whitepaper)** • **[Community](#-community)**
+**[Live Demo](https://zk-cross-liquidate.vercel.app)** • **[Deployment Details](FINAL_DEPLOYMENT.md)** • **[Documentation](#-documentation)** • **[Community](#-community)**
 
 </div>
 
@@ -40,6 +40,8 @@ The DeFi ecosystem faces a **$50B+ opportunity** locked in cross-chain lending p
 - 🌐 **True Cross-Chain**: Atomic settlement across Polygon zkEVM and CDK chains
 - 🤖 **AI-Powered**: Machine learning models predict optimal execution timing
 - 💰 **Highly Profitable**: 5-10% liquidation bonuses + protocol fees
+- 🔗 **Live Integrations**: Real Chainlink oracles + Aave V3 liquidation data
+- 🔍 **Real-Time Scanner**: Scan actual positions on Polygon testnet
 
 ---
 
@@ -53,6 +55,25 @@ Every liquidation is backed by **Plonky2 ZK proofs** deployed on Polygon zkEVM, 
 - Cross-chain state is synchronized
 
 **Result**: 99.8% success rate with zero oracle manipulation
+
+### 🌍 Real-World Testnet Integrations
+
+**NEW**: zkLiquidate now connects to live DeFi protocols on Polygon Mumbai:
+
+#### 🔍 Live Liquidation Scanner
+- Scan any address on Polygon Mumbai
+- Query **real Aave V3 contracts** for user positions
+- Calculate actual health factors from on-chain data
+- Estimate real liquidation profits with 5% bonus
+- Identify liquidatable positions in real-time
+
+#### 💰 Chainlink Price Oracles
+- **Live price feeds** for ETH, BTC, MATIC, USDC
+- Updates every 30 seconds from Chainlink Mumbai
+- Confidence scoring based on data freshness
+- Zero mock data - all prices from actual oracle contracts
+
+**Try it now**: Dashboard → 🔍 Live Scanner or 💰 Live Prices
 
 ### 🌉 Native AggLayer Integration
 Built from the ground up for Polygon's AggLayer, enabling:
@@ -182,6 +203,57 @@ Earn passive income while protecting the protocol:
 ### Installation
 
 This project is set up already and running on a cloud environment, as well as a convex development in the sandbox.
+
+---
+
+## 📚 Documentation
+
+Comprehensive documentation is available to help you understand, test, and contribute to zkLiquidate:
+
+### For Users & Testers
+
+- **[Real-World Testing Guide](./docs/REAL_WORLD_TESTING.md)** ⭐ **NEW** - Test with live Aave & Chainlink data
+  - Use real Aave V3 liquidation data
+  - Access live Chainlink price feeds
+  - Scan actual user positions on Mumbai
+  - Complete testing workflow
+
+- **[Community Testing Guide](./docs/COMMUNITY_TESTING_GUIDE.md)** - Step-by-step guide with 8 testing scenarios
+  - Get started with testnet tokens
+  - Test all features systematically
+  - Learn how to report issues
+  - Qualify for tester rewards
+
+- **[Community Testing Rewards](./docs/BUG_BOUNTY.md)** - NFT badges and recognition
+  - Testnet testing program (no monetary rewards)
+  - NFT badges for active testers
+  - Mainnet airdrops for top contributors
+  - Early access benefits
+
+### For Developers
+
+- **[Deployment Guide](./docs/DEPLOYMENT_GUIDE.md)** - Smart contract deployment instructions
+  - Network configuration
+  - Contract deployment steps
+  - Verification process
+  - Testnet resources
+
+- **[Wave 5 Submission](./docs/WAVE_5_SUBMISSION.md)** - Complete project status
+  - All Phase 1 deliverables
+  - Performance metrics
+  - Architecture overview
+  - Future roadmap
+
+### Quick Links
+
+- 🌐 **Live Demo**: [zk-cross-liquidate.vercel.app](https://zk-cross-liquidate.vercel.app)
+- 📖 **Whitepaper**: Available at `/whitepaper` route in the app
+- 🔍 **Smart Contracts**:
+  - [Intent Registry (Polygon Amoy)](https://amoy.polygonscan.com/address/0x831F6F30cc0Aa68a9541B79c2289BF748DEC4a2a)
+  - [ZK Verifier (zkEVM)](https://testnet-zkevm.polygonscan.com/address/0x8C935B982416673cF9633DdCC4E9Dc4ec2846Ab2)
+  - [Liquidation Executor (Polygon Amoy)](https://amoy.polygonscan.com/address/0x6cFe23FA3ed2D3df4ae2a4A2686514Fa8E634A9B)
+
+---
 
 ## Environment Variables
 

@@ -16,6 +16,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
 const Documentation = lazy(() => import("./pages/Documentation.tsx"));
 const Whitepaper = lazy(() => import("./pages/Whitepaper.tsx"));
 const Community = lazy(() => import("./pages/Community.tsx"));
+const BugBounty = lazy(() => import("./pages/BugBounty.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 // Simple loading fallback for route transitions
@@ -67,6 +68,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/documentation" element={<Documentation />} />
               <Route path="/whitepaper" element={<Whitepaper />} />
               <Route path="/community" element={<Community />} />
+              <Route path="/bug-bounty" element={<BugBounty />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

@@ -40,7 +40,7 @@ export function LandingFooter() {
               <li><button onClick={() => navigate("/documentation")} className="hover:text-primary transition-colors">Documentation</button></li>
               <li><button onClick={() => navigate("/whitepaper")} className="hover:text-primary transition-colors">Whitepaper</button></li>
               <li><a href="#" className="hover:text-primary transition-colors">Security Audits</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Bug Bounty</a></li>
+              <li><button onClick={() => navigate("/bug-bounty")} className="hover:text-primary transition-colors">Bug Bounty</button></li>
             </ul>
           </div>
 
@@ -51,7 +51,7 @@ export function LandingFooter() {
               <li><a href="#" className="hover:text-primary transition-colors">GitHub</a></li>
               <li><button onClick={() => navigate("/documentation")} className="hover:text-primary transition-colors">API Reference</button></li>
               <li><button onClick={() => navigate("/documentation")} className="hover:text-primary transition-colors">Integration Guide</button></li>
-              <li><a href="#" className="hover:text-primary transition-colors">SDK</a></li>
+              <li><a href="/whitelist-tool.html" className="hover:text-primary transition-colors">Whitelist Tool</a></li>
             </ul>
           </div>
 

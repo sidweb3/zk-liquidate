@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Contract Owner</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🔍 Check Contract Owner</h2>
+        <p>IntentRegistryV2: <code>0x320A2dC1b4a56D13438578e3aC386ed90Ca21D27</code></p>
+
+        <button onclick="checkOwner()">Check Owner</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script type="module">
+        import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
+
+        window.checkOwner = async function() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>Checking...</p>';
+
+            try {
+                if (typeof window.ethereum === 'undefined') {
+                    resultDiv.innerHTML = '<p style="color: red;">❌ MetaMask not detected</p>';
+                    return;
+                }
+
+                const provider = new ethers.BrowserProvider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                const signer = await provider.getSigner();
+                const userAddress = await signer.getAddress();
+
+                // Switch to Amoy if needed
+                const network = await provider.getNetwork();
+                if (network.chainId !== 80002n) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: '0x13882' }],
+                        });
+                        // Refresh provider after network switch
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        window.location.reload();
+                        return;
+                    } catch (e) {
+                        resultDiv.innerHTML = '<p style="color: red;">❌ Please switch to Polygon Amoy Testnet</p>';
+                        return;
+                    }
+                }
+
+                const contractAddress = "0x320A2dC1b4a56D13438578e3aC386ed90Ca21D27";
+                const abi = ["function owner() external view returns (address)"];
+                const contract = new ethers.Contract(contractAddress, abi, provider);
+
+                const owner = await contract.owner();
+
+                let html = '<div class="result">';
+                html += '<strong>Contract Owner:</strong><br>';
+                html += owner + '<br><br>';
+                html += '<strong>Your Address:</strong><br>';
+                html += userAddress + '<br><br>';
+
+                if (owner.toLowerCase() === userAddress.toLowerCase()) {
+                    html += '<div style="color: green; font-weight: bold;">✅ You ARE the contract owner!</div>';
+                    html += '<div class="highlight">You can whitelist protocols.</div>';
+                } else {
+                    html += '<div style="color: red; font-weight: bold;">❌ You are NOT the contract owner.</div>';
+                    html += '<div class="highlight">Only the owner can whitelist protocols. You need to connect with the wallet that deployed the contract.</div>';
+                }
+
+                html += '</div>';
+                resultDiv.innerHTML = html;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result" style="color: red;">❌ Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

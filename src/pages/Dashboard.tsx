@@ -11,6 +11,8 @@ import { RiskOracle } from "@/components/dashboard/RiskOracle";
 import { LiquidationSimulator } from "@/components/dashboard/LiquidationSimulator";
 import { AutomatedBot } from "@/components/dashboard/AutomatedBot";
 import { AnalyticsChart } from "@/components/dashboard/AnalyticsChart";
+import { RealTimePrices } from "@/components/dashboard/RealTimePrices";
+import { LiquidationScanner } from "@/components/dashboard/LiquidationScanner";
 import { useWalletConnection } from "@/hooks/useContract";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -155,45 +157,65 @@ export default function Dashboard() {
 
         <StatsOverview stats={stats} />
 
-        <Tabs defaultValue="registry" className="space-y-6">
-          <TabsList className="bg-card/50 backdrop-blur-sm border border-border p-1 h-auto">
-            <TabsTrigger 
-              value="registry" 
+        <Tabs defaultValue="scanner" className="space-y-6">
+          <TabsList className="bg-card/50 backdrop-blur-sm border border-border p-1 h-auto flex-wrap">
+            <TabsTrigger
+              value="scanner"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-6 py-3 rounded-lg transition-all"
+            >
+              🔍 Live Scanner
+            </TabsTrigger>
+            <TabsTrigger
+              value="prices"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-6 py-3 rounded-lg transition-all"
+            >
+              💰 Live Prices
+            </TabsTrigger>
+            <TabsTrigger
+              value="registry"
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-6 py-3 rounded-lg transition-all"
             >
               Intent Registry
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="verifier"
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-6 py-3 rounded-lg transition-all"
             >
               ZK Verifier
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="oracle"
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-6 py-3 rounded-lg transition-all"
             >
               Risk Oracle
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="simulator"
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-6 py-3 rounded-lg transition-all"
             >
               Simulator
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="bot"
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-6 py-3 rounded-lg transition-all"
             >
               Auto Bot
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="analytics"
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-6 py-3 rounded-lg transition-all"
             >
               Analytics
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="scanner" className="space-y-4">
+            <LiquidationScanner />
+          </TabsContent>
+
+          <TabsContent value="prices" className="space-y-4">
+            <RealTimePrices />
+          </TabsContent>
 
           <TabsContent value="registry" className="space-y-4">
             <IntentRegistry 

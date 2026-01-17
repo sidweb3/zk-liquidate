@@ -1,4 +1,23 @@
-// Deployed Smart Contract Addresses
+// Deployed Smart Contract Addresses - Wave 5 V2
+export const CONTRACTS_V2 = {
+  INTENT_REGISTRY_V2: {
+    address: "0xb9Fc157d8025892Ac3382F7a70c58DcB8D7de2A1",
+    network: "Polygon Amoy Testnet",
+    chainId: 80002,
+  },
+  ZK_VERIFIER: {
+    address: "0x8C935B982416673cF9633DdCC4E9Dc4ec2846Ab2",
+    network: "Polygon zkEVM Testnet",
+    chainId: 1442,
+  },
+  LIQUIDATION_EXECUTOR_V2: {
+    address: "0x6cFe23FA3ed2D3df4ae2a4A2686514Fa8E634A9B",
+    network: "Polygon Amoy Testnet",
+    chainId: 80002,
+  },
+} as const;
+
+// V1 Contracts (Legacy)
 export const CONTRACTS = {
   INTENT_REGISTRY: {
     address: "0x831F6F30cc0Aa68a9541B79c2289BF748DEC4a2a",
@@ -11,7 +30,7 @@ export const CONTRACTS = {
     chainId: 1442,
   },
   LIQUIDATION_EXECUTOR: {
-    address: "0x6cFe23FA3ed2D3df4ae2a4A2686514Fa8E634A9B",
+    address: "0x831F6F30cc0Aa68a9541B79c2289BF748DEC4a2a",
     network: "Polygon Amoy Testnet",
     chainId: 80002,
   },
@@ -26,6 +45,13 @@ export const TESTNET_TOKENS = {
   USDT: "0xBD21A10F619BE90d6066c941b04e340841F1F989",
 } as const;
 
+// Aave V3 Protocol Addresses on Polygon Amoy
+export const AAVE_V3_AMOY = {
+  POOL: "0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951",
+  ORACLE: "0xc100cd5b25b9b0f10f3d06e42f3ded22a6dd5db6",
+  UI_POOL_DATA_PROVIDER: "0xC69728f11E9E6127733751c8410432913123acf1",
+} as const;
+
 // ERC20 ABI for token interactions
 export const ERC20_ABI = [
   "function balanceOf(address owner) view returns (uint256)",
@@ -35,11 +61,25 @@ export const ERC20_ABI = [
 ] as const;
 
 // Contract ABIs (simplified for frontend interaction)
+// V1 ABI (Legacy)
 export const INTENT_REGISTRY_ABI = [
   "function submitIntent(address targetUser, uint256 targetHealthFactor, uint256 minPrice, uint256 deadline) external payable returns (bytes32)",
   "function getIntent(bytes32 intentHash) external view returns (tuple(address liquidator, address targetUser, uint256 targetHealthFactor, uint256 minPrice, uint256 deadline, uint256 bondAmount, uint8 status))",
   "function cancelIntent(bytes32 intentHash) external",
   "event IntentSubmitted(bytes32 indexed intentHash, address indexed liquidator, address targetUser)",
+] as const;
+
+// V2 ABI (Wave 5)
+export const INTENT_REGISTRY_V2_ABI = [
+  "function submitIntent(bytes32 intentHash, address targetUser, address targetProtocol, uint256 targetHealthFactor, uint256 minPrice, uint256 deadline) external payable",
+  "function getIntent(bytes32 intentHash) external view returns (address liquidator, bytes32 intentHash_, address targetUser, address targetProtocol, uint256 targetHealthFactor, uint256 minPrice, uint256 deadline, uint256 stakeAmount, bool isExecuted, bool isCancelled, bool isSlashed, uint256 createdAt)",
+  "function cancelIntent(bytes32 intentHash) external",
+  "function supportedProtocols(address protocol) external view returns (bool)",
+  "function addProtocol(address protocol) external",
+  "function removeProtocol(address protocol) external",
+  "event IntentSubmitted(bytes32 indexed intentHash, address indexed liquidator, address targetUser, address targetProtocol, uint256 stakeAmount, uint256 deadline)",
+  "event ProtocolAdded(address indexed protocol)",
+  "event ProtocolRemoved(address indexed protocol)",
 ] as const;
 
 export const ZK_VERIFIER_ABI = [
@@ -94,6 +134,33 @@ export async function getLiquidationExecutorContract() {
     return new Contract(CONTRACTS.LIQUIDATION_EXECUTOR.address, LIQUIDATION_EXECUTOR_ABI, signer);
   } catch (error: any) {
     throw new Error(`Failed to connect to LiquidationExecutor contract: ${error.message}`);
+  }
+}
+
+// V2 Contract Helpers
+export async function getIntentRegistryV2Contract() {
+  if (typeof window.ethereum === "undefined") {
+    throw new Error("No Web3 wallet detected. Please install MetaMask or another Web3 wallet.");
+  }
+  try {
+    const provider = new BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    return new Contract(CONTRACTS_V2.INTENT_REGISTRY_V2.address, INTENT_REGISTRY_V2_ABI, signer);
+  } catch (error: any) {
+    throw new Error(`Failed to connect to IntentRegistryV2 contract: ${error.message}`);
+  }
+}
+
+export async function getLiquidationExecutorV2Contract() {
+  if (typeof window.ethereum === "undefined") {
+    throw new Error("No Web3 wallet detected. Please install MetaMask or another Web3 wallet.");
+  }
+  try {
+    const provider = new BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    return new Contract(CONTRACTS_V2.LIQUIDATION_EXECUTOR_V2.address, LIQUIDATION_EXECUTOR_ABI, signer);
+  } catch (error: any) {
+    throw new Error(`Failed to connect to LiquidationExecutorV2 contract: ${error.message}`);
   }
 }
 

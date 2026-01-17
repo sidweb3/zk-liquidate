@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup IntentRegistryV2</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #0f0;
+        }
+        .box {
+            background: #1a1a1a;
+            padding: 20px;
+            border: 2px solid #0f0;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        h2 {
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0;
+        }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            font-weight: bold;
+            font-size: 16px;
+            font-family: monospace;
+        }
+        button:hover {
+            background: #0c0;
+            box-shadow: 0 0 20px #0f0;
+        }
+        button:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .log {
+            background: #000;
+            padding: 15px;
+            border: 1px solid #0f0;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { color: #0f0; }
+        .error { color: #f00; }
+        .warning { color: #ff0; }
+        .info { color: #0ff; }
+        input {
+            width: 100%;
+            padding: 10px;
+            background: #000;
+            border: 1px solid #0f0;
+            color: #0f0;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+        a {
+            color: #0ff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h2>⚡ IntentRegistryV2 Setup</h2>
+
+    <div class="box">
+        <strong>New Contract Address:</strong><br>
+        <input type="text" id="contractAddress" value="0xb9Fc157d8025892Ac3382F7a70c58DcB8D7de2A1" placeholder="0x...">
+
+        <div style="margin-top: 20px;">
+            <strong>Aave V3 Pool:</strong> 0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951<br>
+            <strong>LiquidationExecutor:</strong> 0x6cFe23FA3ed2D3df4ae2a4A2686514Fa8E634A9B<br>
+            <strong>Network:</strong> Polygon Amoy (80002)
+        </div>
+    </div>
+
+    <div id="statusBar" class="status" style="display:none;"></div>
+
+    <button onclick="connect()" id="connectBtn">1. Connect MetaMask</button>
+    <button onclick="addProtocol()" id="addBtn" disabled>2. Add Aave V3 Protocol (with High Gas)</button>
+    <button onclick="setExecutor()" id="setBtn" disabled>3. Set Liquidation Executor</button>
+    <button onclick="verifyAll()" id="verifyBtn" disabled>4. Verify Setup</button>
+
+    <div class="log" id="log"></div>
+
+    <script type="module">
+        import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
+
+        const AAVE_POOL = "0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951";
+        const EXECUTOR = "0x6cFe23FA3ed2D3df4ae2a4A2686514Fa8E634A9B";
+        const CHAIN_ID = 80002;
+
+        const ABI = [
+            "function addProtocol(address protocol) external",
+            "function removeProtocol(address protocol) external",
+            "function setLiquidationExecutor(address _liquidationExecutor) external",
+            "function supportedProtocols(address protocol) external view returns (bool)",
+            "function liquidationExecutor() external view returns (address)",
+            "function owner() external view returns (address)",
+            "function MIN_STAKE() external view returns (uint256)"
+        ];
+
+        let provider, signer, contract, userAddress;
+
+        function log(msg, type = 'info') {
+            const div = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            div.innerHTML += `<div class="${type}">[${time}] ${msg}</div>`;
+            div.scrollTop = div.scrollHeight;
+            console.log(msg);
+        }
+
+        function showStatus(msg, type) {
+            const bar = document.getElementById('statusBar');
+            bar.textContent = msg;
+            bar.style.display = 'block';
+            bar.style.background = type === 'success' ? '#0f0' : type === 'error' ? '#f00' : '#ff0';
+            bar.style.color = '#000';
+        }
+
+        window.connect = async function() {
+            try {
+                if (!window.ethereum) {
+                    log('❌ MetaMask not found', 'error');
+                    return;
+                }
+
+                log('🔌 Connecting to MetaMask...', 'info');
+                provider = new ethers.BrowserProvider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+
+                const network = await provider.getNetwork();
+                if (Number(network.chainId) !== CHAIN_ID) {
+                    log('⚠️ Wrong network! Switching to Polygon Amoy...', 'warning');
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: '0x13882' }],
+                        });
+                        await new Promise(r => setTimeout(r, 1000));
+                        provider = new ethers.BrowserProvider(window.ethereum);
+                    } catch (e) {
+                        if (e.code === 4902) {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: '0x13882',
+                                    chainName: 'Polygon Amoy',
+                                    rpcUrls: ['https://rpc-amoy.polygon.technology'],
+                                    nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
+                                    blockExplorerUrls: ['https://amoy.polygonscan.com/'],
+                                }],
+                            });
+                            await new Promise(r => setTimeout(r, 1000));
+                            provider = new ethers.BrowserProvider(window.ethereum);
+                        } else throw e;
+                    }
+                }
+
+                signer = await provider.getSigner();
+                userAddress = await signer.getAddress();
+                log(`✅ Connected: ${userAddress}`, 'success');
+
+                const contractAddr = document.getElementById('contractAddress').value;
+                contract = new ethers.Contract(contractAddr, ABI, signer);
+                log(`📄 Contract loaded: ${contractAddr}`, 'success');
+
+                // Check owner
+                try {
+                    const owner = await contract.owner();
+                    log(`👑 Contract owner: ${owner}`, 'info');
+                    if (owner.toLowerCase() === userAddress.toLowerCase()) {
+                        log('✅ You are the owner!', 'success');
+                        showStatus('✅ Connected as Owner', 'success');
+                    } else {
+                        log('⚠️ You are NOT the owner', 'warning');
+                        showStatus('⚠️ Not the owner', 'warning');
+                    }
+                } catch (e) {
+                    log(`⚠️ Could not check owner: ${e.message}`, 'warning');
+                }
+
+                // Check MIN_STAKE
+                try {
+                    const minStake = await contract.MIN_STAKE();
+                    const minStakeEther = ethers.formatEther(minStake);
+                    log(`💰 MIN_STAKE: ${minStakeEther} MATIC`, 'info');
+                } catch (e) {
+                    log(`⚠️ Could not read MIN_STAKE`, 'warning');
+                }
+
+                document.getElementById('connectBtn').disabled = true;
+                document.getElementById('addBtn').disabled = false;
+                document.getElementById('setBtn').disabled = false;
+                document.getElementById('verifyBtn').disabled = false;
+
+            } catch (error) {
+                log(`❌ Connection failed: ${error.message}`, 'error');
+                showStatus('❌ Connection failed', 'error');
+            }
+        }
+
+        window.addProtocol = async function() {
+            try {
+                log('', 'info');
+                log('═══════════════════════════════════', 'info');
+                log('🔧 ADDING AAVE V3 PROTOCOL', 'info');
+                log('═══════════════════════════════════', 'info');
+
+                const btn = document.getElementById('addBtn');
+                btn.disabled = true;
+                btn.textContent = 'Processing...';
+
+                log(`📝 Protocol address: ${AAVE_POOL}`, 'info');
+                log('⛽ Estimating gas...', 'info');
+
+                // Try to estimate gas first
+                let gasEstimate;
+                try {
+                    gasEstimate = await contract.addProtocol.estimateGas(AAVE_POOL);
+                    log(`📊 Estimated gas: ${gasEstimate.toString()}`, 'info');
+                } catch (e) {
+                    log(`⚠️ Gas estimation failed: ${e.message}`, 'warning');
+                    log('💪 Using high gas limit (500,000)', 'warning');
+                    gasEstimate = 500000n;
+                }
+
+                // Add 50% buffer to gas estimate
+                const gasLimit = (gasEstimate * 150n) / 100n;
+                log(`⛽ Using gas limit: ${gasLimit.toString()}`, 'info');
+
+                log('📤 Sending transaction...', 'info');
+                const tx = await contract.addProtocol(AAVE_POOL, {
+                    gasLimit: gasLimit
+                });
+
+                log(`✅ TX sent: ${tx.hash}`, 'success');
+                log(`🔗 View: https://amoy.polygonscan.com/tx/${tx.hash}`, 'info');
+                showStatus('⏳ Waiting for confirmation...', 'warning');
+
+                log('⏳ Waiting for confirmation...', 'info');
+                const receipt = await tx.wait();
+
+                log(`✅ CONFIRMED in block ${receipt.blockNumber}`, 'success');
+                log(`⛽ Gas used: ${receipt.gasUsed.toString()}`, 'info');
+                showStatus('✅ Aave V3 Protocol Added!', 'success');
+
+                btn.textContent = '✅ Protocol Added!';
+
+                // Verify
+                setTimeout(async () => {
+                    const isSupported = await contract.supportedProtocols(AAVE_POOL);
+                    if (isSupported) {
+                        log('✅ VERIFICATION: Protocol is whitelisted!', 'success');
+                    } else {
+                        log('❌ VERIFICATION FAILED: Protocol not whitelisted', 'error');
+                    }
+                }, 2000);
+
+            } catch (error) {
+                log('', 'error');
+                log('❌ FAILED TO ADD PROTOCOL', 'error');
+                log(`Error: ${error.message}`, 'error');
+
+                if (error.message.includes('user rejected')) {
+                    log('User rejected transaction', 'warning');
+                } else if (error.message.includes('insufficient funds')) {
+                    log('Insufficient MATIC for gas', 'error');
+                } else if (error.code) {
+                    log(`Error code: ${error.code}`, 'error');
+                }
+
+                showStatus('❌ Failed to add protocol', 'error');
+                document.getElementById('addBtn').disabled = false;
+                document.getElementById('addBtn').textContent = '2. Add Aave V3 Protocol (with High Gas)';
+            }
+        }
+
+        window.setExecutor = async function() {
+            try {
+                log('', 'info');
+                log('═══════════════════════════════════', 'info');
+                log('🔧 SETTING LIQUIDATION EXECUTOR', 'info');
+                log('═══════════════════════════════════', 'info');
+
+                const btn = document.getElementById('setBtn');
+                btn.disabled = true;
+                btn.textContent = 'Processing...';
+
+                log(`📝 Executor address: ${EXECUTOR}`, 'info');
+                log('⛽ Estimating gas...', 'info');
+
+                let gasEstimate;
+                try {
+                    gasEstimate = await contract.setLiquidationExecutor.estimateGas(EXECUTOR);
+                    log(`📊 Estimated gas: ${gasEstimate.toString()}`, 'info');
+                } catch (e) {
+                    log(`⚠️ Gas estimation failed: ${e.message}`, 'warning');
+                    log('💪 Using high gas limit (500,000)', 'warning');
+                    gasEstimate = 500000n;
+                }
+
+                const gasLimit = (gasEstimate * 150n) / 100n;
+                log(`⛽ Using gas limit: ${gasLimit.toString()}`, 'info');
+
+                log('📤 Sending transaction...', 'info');
+                const tx = await contract.setLiquidationExecutor(EXECUTOR, {
+                    gasLimit: gasLimit
+                });
+
+                log(`✅ TX sent: ${tx.hash}`, 'success');
+                log(`🔗 View: https://amoy.polygonscan.com/tx/${tx.hash}`, 'info');
+                showStatus('⏳ Waiting for confirmation...', 'warning');
+
+                log('⏳ Waiting for confirmation...', 'info');
+                const receipt = await tx.wait();
+
+                log(`✅ CONFIRMED in block ${receipt.blockNumber}`, 'success');
+                log(`⛽ Gas used: ${receipt.gasUsed.toString()}`, 'info');
+                showStatus('✅ Liquidation Executor Set!', 'success');
+
+                btn.textContent = '✅ Executor Set!';
+
+                // Verify
+                setTimeout(async () => {
+                    const currentExecutor = await contract.liquidationExecutor();
+                    if (currentExecutor.toLowerCase() === EXECUTOR.toLowerCase()) {
+                        log('✅ VERIFICATION: Executor is set correctly!', 'success');
+                    } else {
+                        log('❌ VERIFICATION FAILED: Executor not set', 'error');
+                    }
+                }, 2000);
+
+            } catch (error) {
+                log('', 'error');
+                log('❌ FAILED TO SET EXECUTOR', 'error');
+                log(`Error: ${error.message}`, 'error');
+
+                if (error.message.includes('user rejected')) {
+                    log('User rejected transaction', 'warning');
+                } else if (error.message.includes('insufficient funds')) {
+                    log('Insufficient MATIC for gas', 'error');
+                } else if (error.code) {
+                    log(`Error code: ${error.code}`, 'error');
+                }
+
+                showStatus('❌ Failed to set executor', 'error');
+                document.getElementById('setBtn').disabled = false;
+                document.getElementById('setBtn').textContent = '3. Set Liquidation Executor';
+            }
+        }
+
+        window.verifyAll = async function() {
+            try {
+                log('', 'info');
+                log('═══════════════════════════════════', 'info');
+                log('🔍 VERIFYING SETUP', 'info');
+                log('═══════════════════════════════════', 'info');
+
+                const btn = document.getElementById('verifyBtn');
+                btn.disabled = true;
+
+                // Check protocol
+                log('Checking Aave V3 protocol...', 'info');
+                const isProtocolSupported = await contract.supportedProtocols(AAVE_POOL);
+                if (isProtocolSupported) {
+                    log('✅ Aave V3 Pool is whitelisted', 'success');
+                } else {
+                    log('❌ Aave V3 Pool is NOT whitelisted', 'error');
+                }
+
+                // Check executor
+                log('Checking liquidation executor...', 'info');
+                const currentExecutor = await contract.liquidationExecutor();
+                if (currentExecutor.toLowerCase() === EXECUTOR.toLowerCase()) {
+                    log('✅ Liquidation Executor is set correctly', 'success');
+                } else if (currentExecutor === '0x0000000000000000000000000000000000000000') {
+                    log('❌ Liquidation Executor is NOT set', 'error');
+                } else {
+                    log(`⚠️ Executor is set to different address: ${currentExecutor}`, 'warning');
+                }
+
+                // Check MIN_STAKE
+                const minStake = await contract.MIN_STAKE();
+                const minStakeEther = ethers.formatEther(minStake);
+                log(`💰 MIN_STAKE: ${minStakeEther} MATIC`, 'info');
+
+                log('', 'info');
+                if (isProtocolSupported && currentExecutor.toLowerCase() === EXECUTOR.toLowerCase()) {
+                    log('═══════════════════════════════════', 'success');
+                    log('🎉 SETUP COMPLETE!', 'success');
+                    log('═══════════════════════════════════', 'success');
+                    log('You can now submit liquidation intents', 'success');
+                    showStatus('🎉 Setup Complete!', 'success');
+                } else {
+                    log('═══════════════════════════════════', 'error');
+                    log('⚠️ SETUP INCOMPLETE', 'error');
+                    log('═══════════════════════════════════', 'error');
+                    log('Please complete steps 2 and 3', 'warning');
+                    showStatus('⚠️ Setup Incomplete', 'warning');
+                }
+
+                btn.disabled = false;
+
+            } catch (error) {
+                log(`❌ Verification failed: ${error.message}`, 'error');
+                document.getElementById('verifyBtn').disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
