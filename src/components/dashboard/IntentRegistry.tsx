@@ -51,7 +51,11 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
         const bondAmount = parseEther("0.1"); // Changed to 0.1 MATIC for testnet
 
         // Generate intent hash
-        const userAddress = await contract.runner?.getAddress();
+        const signer = contract.runner;
+        if (!signer || typeof (signer as any).getAddress !== 'function') {
+          throw new Error("Contract signer not available");
+        }
+        const userAddress = await (signer as any).getAddress();
         const intentHash = solidityPackedKeccak256(
           ["address", "address", "uint256", "uint256"],
           [userAddress, targetUser, targetHealthFactor, deadline]
