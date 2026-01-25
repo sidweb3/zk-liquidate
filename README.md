@@ -12,7 +12,7 @@
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Live_on_Testnet-success?style=for-the-badge)](https://amoy.polygonscan.com/)
 
-**[Live Demo](https://zk-cross-liquidate.vercel.app)** • **[Deployment Details](FINAL_DEPLOYMENT.md)** • **[Documentation](#-documentation)** • **[Community](#-community)**
+**[Live Demo](https://zk-liquidate-mu.vercel.app)** • **[Deployment Details](FINAL_DEPLOYMENT.md)** • **[Documentation](#-documentation)** • **[Community](#-community)**
 
 </div>
 
