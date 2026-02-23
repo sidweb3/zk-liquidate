@@ -110,8 +110,8 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
       const minPrice = parseUnits(formData.get("price") as string, 6);
       const currentBlock = await contract.runner?.provider?.getBlockNumber() || 0;
       const deadline = currentBlock + 100;
-      // MIN_STAKE on IntentRegistryV2 is 10 MATIC
-      const bondAmount = parseEther("10");
+      // MIN_STAKE on IntentRegistryV2 is 0.1 MATIC
+      const bondAmount = parseEther("0.1");
 
       const signer = contract.runner;
       if (!signer || typeof (signer as any).getAddress !== "function") {
@@ -126,7 +126,7 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
       // Use the Aave V3 Amoy pool — whitelisted via addProtocol() on IntentRegistryV2
       const targetProtocol = AAVE_V3_AMOY.POOL;
 
-      toast.info("⚠️ Make sure you have at least 10 MATIC in your wallet for the bond!");
+      toast.info("⚠️ Make sure you have at least 0.1 MATIC in your wallet for the bond!");
 
       const tx = await contract.submitIntent(
         intentHash,
@@ -137,8 +137,7 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
         deadline,
         {
           value: bondAmount,
-          maxFeePerGas: 50000000000n,
-          maxPriorityFeePerGas: 30000000000n,
+          gasLimit: 300000n,
         }
       );
 
@@ -168,7 +167,7 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
           targetUserAddress: targetUser,
           targetHealthFactor: hfValue,
           minPrice: parseFloat(formData.get("price") as string),
-          bondAmount: 10,
+          bondAmount: 0.1,
           walletAddress: walletAddress || userAddress,
         });
         toast.success("Intent recorded in registry!");
@@ -193,11 +192,13 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
     } catch (error: any) {
       console.error("Failed to submit intent:", error);
       if (error.code === "INSUFFICIENT_FUNDS") {
-        toast.error("Insufficient funds! You need at least 10 MATIC + gas fees.");
+        toast.error("Insufficient funds! You need at least 0.1 MATIC + gas fees.");
       } else if (error.code === "ACTION_REJECTED" || error.message?.includes("user rejected")) {
         toast.error("Transaction rejected by user");
+      } else if (error.code === -32002 || error.message?.includes("too many errors") || error.message?.includes("RPC endpoint")) {
+        toast.error("RPC rate limit hit. Please wait 30 seconds and try again, or switch to a different network connection.");
       } else if (error.message?.includes("Unsupported protocol")) {
-        toast.error("Protocol not whitelisted on IntentRegistryV2. Only Polygon mainnet Aave V3 is supported.");
+        toast.error("Protocol not whitelisted on IntentRegistryV2. Only Polygon Amoy Aave V3 is supported.");
       } else if (error.message?.includes("Maximum 10 pending")) {
         toast.error(error.message);
       } else {
@@ -261,7 +262,7 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
             <DialogHeader>
               <DialogTitle>Submit Liquidation Intent</DialogTitle>
               <DialogDescription>
-                Create a new on-chain liquidation intent. Requires 10 MATIC bond on Polygon Amoy.
+                Create a new on-chain liquidation intent. Requires 0.1 MATIC bond on Polygon Amoy.
               </DialogDescription>
             </DialogHeader>
 
@@ -272,7 +273,7 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
                   <p className="font-medium text-yellow-500">Before submitting:</p>
                   <ul className="list-disc list-inside space-y-0.5 text-muted-foreground text-xs">
                     <li>Connect to <strong>Polygon Amoy</strong> network (Chain ID: 80002)</li>
-                    <li>Have at least <strong>10 MATIC + gas fees</strong> in your wallet (MIN_STAKE)</li>
+                    <li>Have at least <strong>0.1 MATIC + gas fees</strong> in your wallet (MIN_STAKE)</li>
                     <li>Get testnet tokens from <a href="https://faucet.polygon.technology/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Polygon Faucet</a></li>
                     <li>ZK proof verification required before execution (via zkEVM verifier)</li>
                   </ul>
@@ -326,7 +327,7 @@ export function IntentRegistry({ intents, onSubmitIntent, onVerifyIntent, onExec
               <div className="space-y-2">
                 <Label className="text-sm">Bond Amount</Label>
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/40 border border-border/60">
-                  <span className="text-sm font-mono font-medium">10 MATIC</span>
+                  <span className="text-sm font-mono font-medium">0.1 MATIC</span>
                   <span className="text-xs text-muted-foreground ml-auto">MIN_STAKE — returned after execution</span>
                 </div>
               </div>
