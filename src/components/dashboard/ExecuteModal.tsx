@@ -57,8 +57,7 @@ export function ExecuteModal({ open, onOpenChange, intentId, intentHash, targetA
         debtAsset,
         debtToCover,
         {
-          maxFeePerGas: 50000000000n,
-          maxPriorityFeePerGas: 30000000000n,
+          gasPrice: 50000000000n, // legacy tx — Polygon Amoy does not support EIP-1559
         }
       );
 
