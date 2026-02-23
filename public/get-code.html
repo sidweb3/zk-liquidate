@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZK Cross-Liquidate — Download Source Code</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+      background: #0a0a0f;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      max-width: 600px;
+      width: 90%;
+      text-align: center;
+      padding: 2rem;
+    }
+    .logo {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #a78bfa;
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      color: #94a3b8;
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+    }
+    .card {
+      background: #13131f;
+      border: 1px solid #2d2d4e;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .file-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0d0d1a;
+      border: 1px solid #1e1e3a;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+    .file-name { color: #a78bfa; font-weight: 600; }
+    .file-size { color: #64748b; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #7c3aed;
+      color: white;
+      text-decoration: none;
+      padding: 0.85rem 2rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: background 0.2s;
+      cursor: pointer;
+      border: none;
+      width: 100%;
+      justify-content: center;
+    }
+    .btn:hover { background: #6d28d9; }
+    .btn svg { width: 20px; height: 20px; }
+    .contents {
+      text-align: left;
+      margin-top: 1.5rem;
+    }
+    .contents h3 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #64748b;
+      margin-bottom: 0.75rem;
+    }
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    .tag {
+      background: #1e1e3a;
+      color: #a78bfa;
+      border-radius: 4px;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.75rem;
+      font-family: monospace;
+    }
+    .footer {
+      color: #475569;
+      font-size: 0.8rem;
+      margin-top: 1.5rem;
+    }
+    .footer a { color: #7c3aed; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+    .badge {
+      display: inline-block;
+      background: #14532d;
+      color: #4ade80;
+      border: 1px solid #166534;
+      border-radius: 4px;
+      padding: 0.15rem 0.5rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">⚡</div>
+    <h1>ZK Cross-Liquidate</h1>
+    <p class="subtitle">ZK-Verified Cross-Chain Liquidation Protocol · Polygon AggLayer <span class="badge">Wave 6</span></p>
+
+    <div class="card">
+      <div class="file-info">
+        <span class="file-name">zk-cross-liquidate-full.zip</span>
+        <span class="file-size">177 files · ~2.0 MB</span>
+      </div>
+
+      <a class="btn" href="/zk-cross-liquidate-full.zip" download="zk-cross-liquidate-full.zip">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        </svg>
+        Download Full Source Code
+      </a>
+
+      <div class="contents">
+        <h3>What's included</h3>
+        <div class="tag-list">
+          <span class="tag">src/pages/</span>
+          <span class="tag">src/components/</span>
+          <span class="tag">src/convex/</span>
+          <span class="tag">src/lib/</span>
+          <span class="tag">src/hooks/</span>
+          <span class="tag">contracts/*.sol</span>
+          <span class="tag">scripts/</span>
+          <span class="tag">docs/</span>
+          <span class="tag">package.json</span>
+          <span class="tag">vite.config.ts</span>
+          <span class="tag">tsconfig.json</span>
+          <span class="tag">WAVE_6_FINAL_SUMMARY.md</span>
+          <span class="tag">README.md</span>
+          <span class="tag">index.html</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Deployed on Polygon Amoy Testnet · Chain ID 80002</p>
+      <p style="margin-top:0.4rem">
+        IntentRegistryV2: <a href="https://amoy.polygonscan.com/address/0xb9Fc157d8025892Ac3382F7a70c58DcB8D7de2A1" target="_blank">0xb9Fc...e2A1</a> ·
+        LiquidationExecutorV2: <a href="https://amoy.polygonscan.com/address/0x6cFe23FA3ed2D3df4ae2a4A2686514Fa8E634A9B" target="_blank">0x6cFe...34A9B</a>
+      </p>
+      <p style="margin-top:0.4rem">
+        <a href="/">← Back to App</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

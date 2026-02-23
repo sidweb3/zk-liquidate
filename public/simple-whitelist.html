@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Whitelist - Without Owner Check</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .box {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #444;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin: 5px 0;
+        }
+        button:hover { background: #5568d3; }
+        button:disabled { background: #555; cursor: not-allowed; }
+        .log {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #4caf50; }
+        .error { color: #f44336; }
+        .warning { color: #ff9800; }
+        .info { color: #2196f3; }
+    </style>
+</head>
+<body>
+    <h2>🛠️ Direct Whitelist Tool</h2>
+    <div class="box">
+        <p><strong>Contract:</strong> 0x320A2dC1b4a56D13438578e3aC386ed90Ca21D27</p>
+        <p><strong>Protocol:</strong> 0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951</p>
+        <p><strong>Network:</strong> Polygon Amoy (80002)</p>
+    </div>
+
+    <div class="box">
+        <p class="warning">⚠️ This tool attempts to whitelist directly without checking ownership first. Use only if you deployed the contract.</p>
+    </div>
+
+    <button onclick="connect()">1. Connect MetaMask</button>
+    <button onclick="checkWhitelist()" id="checkBtn" disabled>2. Check Status</button>
+    <button onclick="whitelist()" id="whitelistBtn" disabled>3. Whitelist Protocol</button>
+
+    <div class="log" id="log"></div>
+
+    <script type="module">
+        import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
+
+        const CONTRACT = "0x320A2dC1b4a56D13438578e3aC386ed90Ca21D27";
+        const PROTOCOL = "0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951";
+        const CHAIN_ID = 80002;
+
+        let provider, signer, contract;
+
+        function log(msg, type = 'info') {
+            const div = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            div.innerHTML += `<div class="${type}">[${time}] ${msg}</div>`;
+            div.scrollTop = div.scrollHeight;
+        }
+
+        window.connect = async function() {
+            try {
+                if (!window.ethereum) {
+                    log('MetaMask not found', 'error');
+                    return;
+                }
+
+                log('Connecting...', 'info');
+                provider = new ethers.BrowserProvider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+
+                const network = await provider.getNetwork();
+                if (Number(network.chainId) !== CHAIN_ID) {
+                    log('Switching to Polygon Amoy...', 'warning');
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: '0x13882' }],
+                        });
+                        await new Promise(r => setTimeout(r, 1000));
+                        provider = new ethers.BrowserProvider(window.ethereum);
+                    } catch (e) {
+                        if (e.code === 4902) {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: '0x13882',
+                                    chainName: 'Polygon Amoy',
+                                    rpcUrls: ['https://rpc-amoy.polygon.technology'],
+                                    nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
+                                    blockExplorerUrls: ['https://amoy.polygonscan.com/'],
+                                }],
+                            });
+                        } else throw e;
+                    }
+                }
+
+                signer = await provider.getSigner();
+                const addr = await signer.getAddress();
+                log(`Connected: ${addr}`, 'success');
+
+                const abi = [
+                    "function addProtocol(address) external",
+                    "function supportedProtocols(address) external view returns (bool)"
+                ];
+                contract = new ethers.Contract(CONTRACT, abi, signer);
+
+                document.getElementById('checkBtn').disabled = false;
+                document.getElementById('whitelistBtn').disabled = false;
+
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        window.checkWhitelist = async function() {
+            try {
+                log('Checking whitelist...', 'info');
+                const isWhitelisted = await contract.supportedProtocols(PROTOCOL);
+
+                if (isWhitelisted) {
+                    log('✅ Protocol IS whitelisted!', 'success');
+                    log('You can now submit liquidation intents', 'success');
+                } else {
+                    log('❌ Protocol NOT whitelisted', 'warning');
+                    log('Click button 3 to whitelist', 'info');
+                }
+            } catch (error) {
+                log(`Check failed: ${error.message}`, 'error');
+            }
+        }
+
+        window.whitelist = async function() {
+            try {
+                log('Preparing transaction...', 'info');
+                log(`Calling addProtocol(${PROTOCOL})`, 'info');
+
+                const btn = document.getElementById('whitelistBtn');
+                btn.disabled = true;
+                btn.textContent = 'Sending Transaction...';
+
+                const tx = await contract.addProtocol(PROTOCOL);
+                log(`TX Sent: ${tx.hash}`, 'success');
+                log('View: https://amoy.polygonscan.com/tx/' + tx.hash, 'info');
+                log('Waiting for confirmation...', 'info');
+
+                const receipt = await tx.wait();
+                log(`✅ Confirmed in block ${receipt.blockNumber}`, 'success');
+                log('Protocol whitelisted!', 'success');
+
+                btn.textContent = '✅ Success!';
+
+                // Verify
+                setTimeout(async () => {
+                    const check = await contract.supportedProtocols(PROTOCOL);
+                    if (check) {
+                        log('✅ Verification passed!', 'success');
+                        log('🎉 You can now submit liquidation intents!', 'success');
+                    }
+                }, 2000);
+
+            } catch (error) {
+                log(`❌ Failed: ${error.message}`, 'error');
+
+                if (error.message.includes('user rejected')) {
+                    log('You rejected the transaction', 'warning');
+                } else if (error.message.includes('execution reverted')) {
+                    log('Transaction reverted - you may not be the owner', 'error');
+                    log('Only the deployer can whitelist protocols', 'warning');
+                } else {
+                    log(`Full error: ${error.code}`, 'error');
+                }
+
+                document.getElementById('whitelistBtn').disabled = false;
+                document.getElementById('whitelistBtn').textContent = '3. Whitelist Protocol';
+            }
+        }
+    </script>
+</body>
+</html>
